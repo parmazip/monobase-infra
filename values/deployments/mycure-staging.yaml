@@ -2,7 +2,7 @@
 # Staging environment on DigitalOcean Kubernetes (DOKS)
 
 global:
-  domain: stg.mycureapp.com
+  domain: stg.parmazip.ca
   namespace: mycure-staging
   environment: staging
 
@@ -89,7 +89,7 @@ account:
     hostname: ""
 
   config:
-    API_URL: "https://hapihub.stg.mycureapp.com"
+    API_URL: "https://hapihub.stg.parmazip.ca"
 
   podDisruptionBudget:
     enabled: false
@@ -121,7 +121,7 @@ hapihub:
   betterAuth:
     passkey:
       rpName: "Mycure"
-      rpId: "mycureapp.com"
+      rpId: "parmazip.ca"
 
   env:
     - name: CLUSTER_INSTANCES
@@ -152,11 +152,11 @@ hapihub:
     refreshInterval: 1h
     secrets:
       - secretKey: GOOGLE_CLIENT_ID
-        remoteKey: mycure-staging-google-oauth-client-id
+        remoteKey: parmazip-staging-google-oauth-client-id
       - secretKey: GOOGLE_CLIENT_SECRET
-        remoteKey: mycure-staging-google-oauth-client-secret
+        remoteKey: parmazip-staging-google-oauth-client-secret
       - secretKey: STRIPE_SECRET_KEY
-        remoteKey: mycure-staging-stripe-secret-key
+        remoteKey: parmazip-staging-stripe-secret-key
 
   mongodb:
     serviceName: mongodb
@@ -187,8 +187,8 @@ mycure:
     hostname: ""
 
   config:
-    API_URL: "https://hapihub.stg.mycureapp.com"
-    HAPIHUB_URL: "https://hapihub.stg.mycureapp.com"
+    API_URL: "https://hapihub.stg.parmazip.ca"
+    HAPIHUB_URL: "https://hapihub.stg.parmazip.ca"
 
   podDisruptionBudget:
     enabled: false
@@ -216,8 +216,8 @@ mycurev8:
     hostname: ""
 
   config:
-    API_URL: "https://hapihub.stg.mycureapp.com"
-    HAPIHUB_URL: "https://hapihub.stg.mycureapp.com"
+    API_URL: "https://hapihub.stg.parmazip.ca"
+    HAPIHUB_URL: "https://hapihub.stg.parmazip.ca"
 
   podDisruptionBudget:
     enabled: false
@@ -245,8 +245,8 @@ dentalemon:
     hostname: ""
 
   config:
-    API_URL: "https://hapihub.stg.mycureapp.com"
-    HAPIHUB_URL: "https://hapihub.stg.mycureapp.com"
+    API_URL: "https://hapihub.stg.parmazip.ca"
+    HAPIHUB_URL: "https://hapihub.stg.parmazip.ca"
 
   podDisruptionBudget:
     enabled: false

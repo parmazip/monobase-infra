@@ -55,7 +55,7 @@ envoyProxyConfig:
 # Gateway Resources - Shared Gateway configuration
 gateway:
   # Base domain for gateway (override per deployment)
-  domain: mycureapp.com
+  domain: parmazip.ca
 
   # Gateway configuration
   gateway:
@@ -67,12 +67,12 @@ gateway:
         enabled: true
         port: 443
         protocol: HTTPS
-        # hostname automatically derived from gateway.domain as *.mycureapp.com
+        # hostname automatically derived from gateway.domain as *.parmazip.ca
       http:
         enabled: true
         port: 80
         protocol: HTTP
-        # hostname automatically derived from gateway.domain as *.mycureapp.com
+        # hostname automatically derived from gateway.domain as *.parmazip.ca
 
   # TLS/Certificate configuration
   tls:

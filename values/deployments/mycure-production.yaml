@@ -2,7 +2,7 @@
 # Production environment on DigitalOcean Kubernetes (DOKS)
 
 global:
-  domain: mycureapp.com
+  domain: parmazip.ca
   namespace: mycure-production
   environment: production
 
@@ -89,7 +89,7 @@ account:
     hostname: ""
 
   config:
-    API_URL: "https://hapihub.mycureapp.com"
+    API_URL: "https://hapihub.parmazip.ca"
 
   podDisruptionBudget:
     enabled: false
@@ -122,7 +122,7 @@ hapihub:
   betterAuth:
     passkey:
       rpName: "Mycure"
-      rpId: "mycureapp.com"
+      rpId: "parmazip.ca"
 
   env:
     - name: CLUSTER_INSTANCES
@@ -153,11 +153,11 @@ hapihub:
     refreshInterval: 1h
     secrets:
       - secretKey: GOOGLE_CLIENT_ID
-        remoteKey: mycure-production-google-oauth-client-id
+        remoteKey: parmazip-production-google-oauth-client-id
       - secretKey: GOOGLE_CLIENT_SECRET
-        remoteKey: mycure-production-google-oauth-client-secret
+        remoteKey: parmazip-production-google-oauth-client-secret
       - secretKey: STRIPE_SECRET_KEY
-        remoteKey: mycure-production-stripe-secret-key
+        remoteKey: parmazip-production-stripe-secret-key
 
   mongodb:
     serviceName: mongodb
@@ -189,8 +189,8 @@ mycure:
     sectionName: https  # Use HTTPS listener with wildcard TLS certificate
 
   config:
-    API_URL: "https://hapihub.mycureapp.com"
-    HAPIHUB_URL: "https://hapihub.mycureapp.com"
+    API_URL: "https://hapihub.parmazip.ca"
+    HAPIHUB_URL: "https://hapihub.parmazip.ca"
 
   podDisruptionBudget:
     enabled: false
@@ -219,8 +219,8 @@ mycurev8:
     sectionName: https  # Use HTTPS listener with wildcard TLS certificate
 
   config:
-    API_URL: "https://hapihub.mycureapp.com"
-    HAPIHUB_URL: "https://hapihub.mycureapp.com"
+    API_URL: "https://hapihub.parmazip.ca"
+    HAPIHUB_URL: "https://hapihub.parmazip.ca"
 
   podDisruptionBudget:
     enabled: false
@@ -249,8 +249,8 @@ dentalemon:
     sectionName: https  # Use HTTPS listener with wildcard TLS certificate
 
   config:
-    API_URL: "https://hapihub.mycureapp.com"
-    HAPIHUB_URL: "https://hapihub.mycureapp.com"
+    API_URL: "https://hapihub.parmazip.ca"
+    HAPIHUB_URL: "https://hapihub.parmazip.ca"
 
   podDisruptionBudget:
     enabled: false
