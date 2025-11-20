@@ -179,6 +179,34 @@ class Bootstrap {
 
   // ===== GitHub App Setup =====
 
+  async checkIfRepoIsPublic(): Promise<boolean> {
+    try {
+      // Get repo URL from git config
+      const repoUrl = await $`git config --get remote.origin.url`.text();
+
+      // Parse owner/repo from URL (handles both git@ and https://)
+      const match = repoUrl.match(/github\.com[:/]([^/]+)\/(.+?)(?:\.git)?$/);
+      if (!match) {
+        console.log(chalk.yellow('  Could not parse GitHub repository URL'));
+        return false;
+      }
+
+      const [, owner, repo] = match;
+
+      // Check GitHub API to see if repo is public
+      const response = await fetch(`https://api.github.com/repos/${owner}/${repo}`);
+
+      if (response.ok) {
+        const data = await response.json();
+        return data.private === false;
+      }
+
+      return false;
+    } catch {
+      return false;
+    }
+  }
+
   async setupGithubApp() {
     if (this.config.skipGithubApp) {
       console.log(chalk.yellow('\n⚠️  Skipping GitHub App setup'));
@@ -186,9 +214,19 @@ class Bootstrap {
     }
 
     console.log(chalk.blue('\n==> Step 2: GitHub App Authentication'));
-    
-    const spinner = ora('Checking for existing credentials...').start();
-    
+
+    // Check if repository is public
+    const spinner = ora('Checking repository visibility...').start();
+    const isPublic = await this.checkIfRepoIsPublic();
+
+    if (isPublic) {
+      spinner.succeed('Repository is public - GitHub App not required');
+      console.log(chalk.gray('  ArgoCD can access public repositories without authentication'));
+      return;
+    }
+
+    spinner.text = 'Checking for existing credentials...';
+
     try {
       // Check if credentials exist in GCP
       const secretsExist = await this.checkGCPSecrets([
