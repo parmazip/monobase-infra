@@ -115,19 +115,45 @@ externalSecrets:
   enabled: true
   version: 0.9.11
   provider: gcp
-  
+
+  # ClusterSecretStore configurations
+  # See charts/external-secrets-stores/README.md for detailed configuration
+  stores:
+    # GCP Secret Manager store (current setup)
+    - name: gcp-secretstore
+      provider: gcp
+      gcp:
+        projectId: "mc-v4-prod"
+        auth:
+          # Using Service Account Key authentication (works on any K8s cluster)
+          serviceAccountKey:
+            enabled: true
+            secretRef:
+              name: gcpsm-secret
+              key: secret-access-credentials
+              namespace: external-secrets-system
+          # Alternative: Workload Identity (for GKE only)
+          workloadIdentity:
+            enabled: false
+            clusterLocation: us-central1
+            clusterName: ""
+            serviceAccountRef:
+              name: external-secrets
+              namespace: external-secrets-system
+
+  # Legacy provider configurations (kept for backward compatibility)
   # AWS Secrets Manager configuration
   aws:
     region: us-east-1
     roleArn: ""
     serviceAccountName: external-secrets-sa
-  
+
   # Azure Key Vault configuration
   azure:
     vaultUrl: ""
     identityId: ""
     tenantId: ""
-  
+
   # GCP Secret Manager configuration
   gcp:
     projectId: ""
