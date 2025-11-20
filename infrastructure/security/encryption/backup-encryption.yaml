@@ -62,31 +62,11 @@
 #   - Double encryption (volume + S3)
 
 ---
-# MongoDB Backup Encryption (mongodump)
-# If using CronJob backups (in addition to Velero):
-#
-# 1. Encrypt mongodump output:
-#    mongodump --archive | openssl enc -aes-256-cbc \
-#      -pass file:/secrets/backup-encryption-key \
-#      -out backup.tar.gz.enc
-#
-# 2. Upload encrypted file to S3:
-#    aws s3 cp backup.tar.gz.enc \
-#      s3://myclient-prod-backups/mongodb/
-#
-# 3. Decrypt on restore:
-#    aws s3 cp s3://myclient-prod-backups/mongodb/backup.tar.gz.enc - | \
-#      openssl enc -aes-256-cbc -d \
-#      -pass file:/secrets/backup-encryption-key | \
-#      mongorestore --archive
-
----
 # Backup Encryption Best Practices:
 #
 # 1. Use different keys for:
 #    - Volume encryption (Longhorn)
 #    - Backup encryption (S3)
-#    - Database encryption (MongoDB)
 #    This limits blast radius if a key is compromised
 #
 # 2. Store all encryption keys in KMS
@@ -117,11 +97,10 @@
 # Encryption Key Hierarchy:
 #
 # KMS Master Key (AWS KMS)
-#   ├── Data Encryption Key #1 (MongoDB volume)
-#   ├── Data Encryption Key #2 (MinIO volume)
-#   ├── Data Encryption Key #3 (Typesense volume)
-#   ├── Data Encryption Key #4 (S3 backup bucket)
-#   └── Data Encryption Key #5 (Velero backups)
+#   ├── Data Encryption Key #1 (MinIO volume)
+#   ├── Data Encryption Key #2 (Typesense volume)
+#   ├── Data Encryption Key #3 (S3 backup bucket)
+#   └── Data Encryption Key #4 (Velero backups)
 #
 # Benefits:
 # - Single master key to manage

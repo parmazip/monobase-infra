@@ -212,42 +212,6 @@ postgresql:
   podDisruptionBudget:
     enabled: false
 
-# ===== DATABASE: MongoDB =====
-mongodb:
-  enabled: true
-
-  fullnameOverride: "mongodb"
-
-  architecture: replicaset
-  replicaCount: 1
-
-  image:
-    repository: bitnamilegacy/mongodb
-    tag: 7.0.15-debian-12-r0
-
-  auth:
-    rootUser: root
-    existingSecret: mongodb
-
-  arbiter:
-    enabled: false
-
-  persistence:
-    enabled: true
-    storageClass: ""
-    size: 20Gi
-
-  resources:
-    requests:
-      cpu: 100m
-      memory: 512Mi
-    limits:
-      cpu: 500m
-      memory: 1Gi
-
-  podDisruptionBudget:
-    enabled: false
-
 # ===== CACHE: Valkey (Redis) =====
 valkey:
   enabled: false
