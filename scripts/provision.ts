@@ -28,6 +28,7 @@ import ora, { type Ora } from "ora";
 import { parseArgs } from "util";
 import { existsSync, readdirSync } from "fs";
 import { join } from "path";
+import { ClusterSetupWizard } from "./lib/wizard/index";
 
 // ===== Types =====
 
@@ -39,15 +40,25 @@ interface ProvisionConfig {
   keepKubeconfig: boolean;
 }
 
+interface WizardFlags {
+  provider?: string;
+  projectId?: string;
+  region?: string;
+  clusterName?: string;
+  deploymentProfile?: string;
+}
+
 // ===== Provision Class =====
 
 class ClusterProvisioner {
   private config: ProvisionConfig;
+  private wizardFlags: WizardFlags;
   private clusterDir: string = '';
   private terraformCmd: string = '';
 
-  constructor(config: ProvisionConfig) {
+  constructor(config: ProvisionConfig, wizardFlags: WizardFlags = {}) {
     this.config = config;
+    this.wizardFlags = wizardFlags;
   }
 
   async run() {
@@ -129,28 +140,17 @@ class ClusterProvisioner {
     this.clusterDir = 'cluster';
 
     if (!existsSync(this.clusterDir)) {
-      const errorMessage = `
-${chalk.red('✗ No cluster configuration found')}
+      console.log(chalk.yellow('\n✗ No cluster configuration found'));
+      console.log(chalk.blue('Launching interactive setup wizard...\n'));
 
-${chalk.yellow('To get started, copy an example cluster configuration:')}
+      // Launch interactive setup wizard
+      const wizard = new ClusterSetupWizard(this.wizardFlags);
+      await wizard.run();
 
-  ${chalk.cyan('# For AWS EKS')}
-  cp -r terraform/examples/aws-eks cluster
-
-  ${chalk.cyan('# For DigitalOcean DOKS')}
-  cp -r terraform/examples/do-doks cluster
-
-  ${chalk.cyan('# For local k3d')}
-  cp -r terraform/examples/k3d cluster
-
-${chalk.yellow('Then customize the configuration:')}
-  cd cluster
-  vim terraform.tfvars
-
-${chalk.yellow('Finally, provision the cluster:')}
-  mise run provision
-`;
-      throw new Error(errorMessage);
+      // After wizard completes, verify cluster directory was created
+      if (!existsSync(this.clusterDir)) {
+        throw new Error('Wizard did not create cluster directory');
+      }
     }
 
     // Check for required Terraform files
@@ -639,6 +639,13 @@ ${chalk.bold('OPTIONS:')}
   ${chalk.cyan('--destroy')}                 Destroy cluster infrastructure
   ${chalk.cyan('--keep-kubeconfig')}         Don't remove kubeconfig files (destroy mode)
 
+  ${chalk.bold('Wizard Automation (bypass interactive prompts):')}
+  ${chalk.cyan('--provider <provider>')}     Cloud provider (aws-eks, do-doks, gcp-gke, k3d)
+  ${chalk.cyan('--project-id <id>')}         GCP project ID (GKE only)
+  ${chalk.cyan('--region <region>')}         Cloud region
+  ${chalk.cyan('--cluster-name <name>')}     Cluster name (default: monobase-main)
+  ${chalk.cyan('--deployment-profile <size>')} Deployment size (small, medium, large)
+
 ${chalk.bold('EXAMPLES:')}
   ${chalk.gray('# Setup cluster configuration')}
   cp -r terraform/examples/aws-eks cluster
@@ -661,7 +668,7 @@ ${chalk.bold('EXAMPLES:')}
 `);
 }
 
-function parseCliArgs(): ProvisionConfig {
+function parseCliArgs(): { config: ProvisionConfig; wizardFlags: WizardFlags } {
   const { values } = parseArgs({
     args: Bun.argv.slice(2),
     options: {
@@ -671,6 +678,12 @@ function parseCliArgs(): ProvisionConfig {
       'merge-kubeconfig': { type: 'boolean', default: false },
       destroy: { type: 'boolean', default: false },
       'keep-kubeconfig': { type: 'boolean', default: false },
+      // Wizard flags
+      provider: { type: 'string' },
+      'project-id': { type: 'string' },
+      region: { type: 'string' },
+      'cluster-name': { type: 'string' },
+      'deployment-profile': { type: 'string' },
     },
     strict: true,
   });
@@ -681,19 +694,28 @@ function parseCliArgs(): ProvisionConfig {
   }
 
   return {
-    dryRun: values['dry-run'] || false,
-    autoApprove: values['auto-approve'] || false,
-    mergeKubeconfig: values['merge-kubeconfig'] || false,
-    destroy: values.destroy || false,
-    keepKubeconfig: values['keep-kubeconfig'] || false,
+    config: {
+      dryRun: values['dry-run'] || false,
+      autoApprove: values['auto-approve'] || false,
+      mergeKubeconfig: values['merge-kubeconfig'] || false,
+      destroy: values.destroy || false,
+      keepKubeconfig: values['keep-kubeconfig'] || false,
+    },
+    wizardFlags: {
+      provider: values.provider as string | undefined,
+      projectId: values['project-id'] as string | undefined,
+      region: values.region as string | undefined,
+      clusterName: values['cluster-name'] as string | undefined,
+      deploymentProfile: values['deployment-profile'] as string | undefined,
+    },
   };
 }
 
 // ===== Main =====
 
 async function main() {
-  const config = parseCliArgs();
-  const provisioner = new ClusterProvisioner(config);
+  const { config, wizardFlags } = parseCliArgs();
+  const provisioner = new ClusterProvisioner(config, wizardFlags);
   await provisioner.run();
 }
 
