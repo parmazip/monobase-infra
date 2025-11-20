@@ -1,11 +1,11 @@
-{{- if .Values.mycure.enabled }}
-# ArgoCD Application: MyCure Frontend
+{{- if .Values.provider.enabled }}
+# ArgoCD Application: Monobase Account Frontend
 # Sync Wave 3 - Deploy application after database
 
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: {{ .Values.global.namespace }}-mycure
+  name: {{ .Values.global.namespace }}-provider
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "3"
@@ -15,13 +15,13 @@ spec:
   project: default
 
   source:
-    path: charts/mycure
+    path: charts/provider
     repoURL: {{ .Values.argocd.repoURL }}
     targetRevision: {{ .Values.argocd.targetRevision | default "main" }}
     helm:
-      releaseName: mycure
+      releaseName: provider
       valuesObject:
-        {{- toYaml .Values.mycure | nindent 8 }}
+        {{- toYaml .Values.provider | nindent 8 }}
         global: {{ .Values.global | toYaml | nindent 10 }}
 
   destination:

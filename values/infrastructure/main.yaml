@@ -94,19 +94,11 @@ gateway:
         - web
         - sync
         - storage
-        - dentalemon
-        - hapihub
-        - mycure
-        - mycurev8
         # Staging subdomains
         - account.stg
         - patient.stg
         - provider.stg
         - www.stg
-        - dentalemon.stg
-        - hapihub.stg
-        - mycure.stg
-        - mycurev8.stg
         - api.stg
         - mail.stg
         - storage.stg
