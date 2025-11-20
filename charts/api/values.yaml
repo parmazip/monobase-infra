@@ -133,8 +133,8 @@ config:
 
 # External Secrets configuration
 externalSecrets:
-  enabled: true
-  secretStore: ""  # Uses global.namespace-secretstore
+  enabled: false  # Disabled by default, enable in deployment values
+  secretStore: "gcp-secretstore"  # ClusterSecretStore name
   refreshInterval: 1h
   secrets: []
 

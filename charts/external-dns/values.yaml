@@ -4,6 +4,15 @@
 # Global enable/disable toggle
 enabled: true
 
+# Cloudflare ExternalSecret configuration
+# Creates ExternalSecret to sync Cloudflare API token from GCP Secret Manager
+cloudflare:
+  externalSecret:
+    enabled: true
+    secretStore: "gcp-secretstore"
+    refreshInterval: "1h"
+    remoteKey: "infrastructure-cloudflare-api-token"
+
 # External DNS image configuration
 image:
   registry: registry.k8s.io

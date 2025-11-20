@@ -104,6 +104,13 @@ affinity: {}
 config:
   API_URL: ""  # Set to API public URL (e.g., https://api.example.com)
 
+# External Secrets configuration
+externalSecrets:
+  enabled: false  # Disabled by default, enable in deployment values
+  secretStore: "gcp-secretstore"
+  refreshInterval: "1h"
+  secrets: []
+
 networkPolicy:
   enabled: true
   policyTypes:
