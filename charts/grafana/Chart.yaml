@@ -13,8 +13,8 @@ home: https://github.com/mycurelabs/monobase-infra
 sources:
   - https://github.com/grafana/grafana
 maintainers:
-  - name: MyCure Labs
-    email: devops@mycure.md
+  - name: Monobase
+    email: hello@monobase.com
 
 dependencies:
   - name: grafana

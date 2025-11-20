@@ -11,4 +11,5 @@ keywords:
   - letsencrypt
   - acme
 maintainers:
-  - name: MyCure Infrastructure Team
+  - name: Monobase
+    email: hello@monobase.com

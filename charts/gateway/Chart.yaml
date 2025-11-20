@@ -10,4 +10,5 @@ keywords:
   - ingress
   - gateway-api
 maintainers:
-  - name: Monobase Labs
+  - name: Monobase
+    email: hello@monobase.com

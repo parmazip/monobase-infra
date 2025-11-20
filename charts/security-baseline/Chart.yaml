@@ -10,4 +10,5 @@ keywords:
   - rbac
   - zero-trust
 maintainers:
-  - name: Monobase Labs
+  - name: Monobase
+    email: hello@monobase.com

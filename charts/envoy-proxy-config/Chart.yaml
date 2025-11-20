@@ -10,4 +10,5 @@ keywords:
   - static-ip
   - multi-cloud
 maintainers:
-  - name: Infrastructure Team
+  - name: Monobase
+    email: hello@monobase.com

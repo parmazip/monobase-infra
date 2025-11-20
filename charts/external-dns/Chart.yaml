@@ -14,8 +14,8 @@ keywords:
   - route53
 
 maintainers:
-  - name: Your Organization
-    email: devops@example.com
+  - name: Monobase
+    email: hello@monobase.com
 
 # Dependencies
 dependencies: []

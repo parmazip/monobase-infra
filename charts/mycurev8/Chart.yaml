@@ -14,5 +14,5 @@ home: https://github.com/monobaselabs/monobase-infra
 sources:
   - https://github.com/monobaselabs/monobase
 maintainers:
-  - name: Your Organization
-    email: devops@example.com
+  - name: Monobase
+    email: hello@monobase.com

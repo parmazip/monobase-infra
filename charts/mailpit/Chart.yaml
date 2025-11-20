@@ -13,8 +13,8 @@ home: https://github.com/monobaselabs/monobase-infra
 sources:
   - https://github.com/axllent/mailpit
 maintainers:
-  - name: Your Organization
-    email: devops@example.com
+  - name: Monobase
+    email: hello@monobase.com
 
 dependencies:
   - name: mailpit
