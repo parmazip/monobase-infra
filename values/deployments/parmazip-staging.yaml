@@ -6,7 +6,7 @@ global:
   namespace: parmazip-staging
   environment: staging
 
-  nodePool: "staging"
+  nodePool: ""
 
   gateway:
     name: shared-gateway
