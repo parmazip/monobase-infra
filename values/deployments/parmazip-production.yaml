@@ -156,7 +156,7 @@ website:
 
   image:
     repository: ghcr.io/monobaselabs/websiteapp
-    tag: "1.0.0"
+    tag: "0.0.1"
     pullPolicy: IfNotPresent
 
   replicaCount: 2
