@@ -474,7 +474,7 @@ spec:
       await $`helm upgrade --install argocd argo/argo-cd \
         --namespace argocd \
         --version 7.7.12 \
-        --values infrastructure/argocd/helm-values.yaml \
+        --values values/infrastructure/argocd.yaml \
         --wait \
         --timeout 10m`.quiet();
       

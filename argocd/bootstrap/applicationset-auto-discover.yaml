@@ -40,9 +40,6 @@ spec:
         files:
           # Include: scan all YAML files in values/deployments/
           - path: "values/deployments/*.yaml"
-          # Exclude: reference examples
-          - path: "values/deployments/example-*.yaml"
-            exclude: true
 
   # Template for creating root Applications
   template:
