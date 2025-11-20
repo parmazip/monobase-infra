@@ -87,6 +87,10 @@ gateway:
         # Production subdomains
         - grafana
         - api
+        - account
+        - patient
+        - provider
+        - www
         - web
         - sync
         - storage
@@ -95,6 +99,10 @@ gateway:
         - mycure
         - mycurev8
         # Staging subdomains
+        - account.stg
+        - patient.stg
+        - provider.stg
+        - www.stg
         - dentalemon.stg
         - hapihub.stg
         - mycure.stg
