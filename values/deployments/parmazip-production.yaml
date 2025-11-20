@@ -1,9 +1,9 @@
-# MyCure Production Configuration
+# Parmazip Production Configuration
 # Production environment on DigitalOcean Kubernetes (DOKS)
 
 global:
   domain: parmazip.ca
-  namespace: mycure-production
+  namespace: parmazip-production
   environment: production
 
   nodePool: "production"

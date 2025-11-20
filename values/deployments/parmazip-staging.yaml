@@ -1,9 +1,9 @@
-# MyCure Staging Configuration
+# Parmazip Staging Configuration
 # Staging environment on DigitalOcean Kubernetes (DOKS)
 
 global:
   domain: stg.parmazip.ca
-  namespace: mycure-staging
+  namespace: parmazip-staging
   environment: staging
 
   nodePool: "staging"
