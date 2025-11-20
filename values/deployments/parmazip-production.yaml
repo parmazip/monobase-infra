@@ -89,7 +89,7 @@ account:
     hostname: ""
 
   config:
-    API_URL: "https://hapihub.parmazip.ca"
+    API_URL: "https://api.parmazip.ca"
 
   podDisruptionBudget:
     enabled: false
@@ -117,7 +117,7 @@ patient:
     hostname: ""
 
   config:
-    API_URL: "https://hapihub.parmazip.ca"
+    API_URL: "https://api.parmazip.ca"
 
   podDisruptionBudget:
     enabled: false
@@ -145,7 +145,7 @@ provider:
     hostname: ""
 
   config:
-    API_URL: "https://hapihub.parmazip.ca"
+    API_URL: "https://api.parmazip.ca"
 
   podDisruptionBudget:
     enabled: false
@@ -173,7 +173,7 @@ website:
     hostname: ""
 
   config:
-    API_URL: "https://hapihub.parmazip.ca"
+    API_URL: "https://api.parmazip.ca"
 
   podDisruptionBudget:
     enabled: false

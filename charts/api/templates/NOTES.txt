@@ -73,5 +73,5 @@ Namespace: {{ include "api.namespace" . }}
   - Architecture: docs/ARCHITECTURE.md
 
 {{- else }}
-HapiHub is disabled (enabled: false)
+Monobase API is disabled (enabled: false)
 {{- end }}
