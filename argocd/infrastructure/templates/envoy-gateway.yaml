@@ -21,6 +21,12 @@ spec:
     helm:
       releaseName: envoy-gateway
       skipCrds: false  # Install Gateway API CRDs (required for fresh clusters)
+      valuesObject:
+        certgen:
+          job:
+            annotations:
+              argocd.argoproj.io/hook: PreSync
+              argocd.argoproj.io/hook-delete-policy: HookSucceeded
   
   destination:
     server: https://kubernetes.default.svc
