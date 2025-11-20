@@ -182,35 +182,43 @@ website:
 postgresql:
   enabled: true
 
-  fullnameOverride: "postgresql"
-
-  architecture: standalone
-
-  image:
-    repository: bitnamilegacy/postgresql
-    tag: 16.4.0-debian-12-r13
-
-  auth:
+  # External Secrets configuration
+  externalSecrets:
     enabled: true
-    existingSecret: postgresql
-    secretKeys:
-      adminPasswordKey: postgres-password
+    remoteKey: parmazip-staging-postgresql-password
 
-  persistence:
-    enabled: true
-    storageClass: ""
-    size: 20Gi
+  # Bitnami PostgreSQL subchart configuration
+  postgresql:
+    fullnameOverride: "postgresql"
+    architecture: standalone
 
-  resources:
-    requests:
-      cpu: 50m
-      memory: 128Mi
-    limits:
-      cpu: 500m
-      memory: 1Gi
+    image:
+      repository: bitnamilegacy/postgresql
+      tag: 16.4.0-debian-12-r13
 
-  podDisruptionBudget:
-    enabled: false
+    auth:
+      enabled: true
+      existingSecret: postgresql
+      secretKeys:
+        adminPasswordKey: postgres-password
+      database: postgres
+      username: postgres
+
+    persistence:
+      enabled: true
+      storageClass: ""
+      size: 20Gi
+
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+
+    podDisruptionBudget:
+      enabled: false
 
 # ===== CACHE: Valkey (Redis) =====
 valkey:
@@ -240,63 +248,71 @@ valkey:
 minio:
   enabled: true
 
-  fullnameOverride: "minio"
-
-  image:
-    repository: bitnamilegacy/minio
-    tag: "2025.7.23-debian-12-r3"
-
-  mode: standalone
-  
-  statefulset:
-    replicaCount: 1
-
-  auth:
-    existingSecret: minio
-
-  persistence:
+  # External Secrets configuration
+  externalSecrets:
     enabled: true
-    storageClass: ""
-    size: 10Gi
+    rootUserKey: parmazip-staging-minio-root-user
+    rootPasswordKey: parmazip-staging-minio-root-password
 
-  resources:
-    requests:
-      cpu: 100m
-      memory: 256Mi
-    limits:
-      cpu: 500m
-      memory: 512Mi
+  # Bitnami MinIO subchart configuration
+  minio:
+    fullnameOverride: "minio"
 
-  defaultBuckets: "monobase-files"
-  
-  buckets:
-    - name: "monobase-files"
-  region: "us-east-1"
+    image:
+      repository: bitnamilegacy/minio
+      tag: "2025.7.23-debian-12-r3"
 
-  podSecurityContext:
-    enabled: true
-    fsGroup: 1001
-    fsGroupChangePolicy: "OnRootMismatch"
+    mode: standalone
 
-  containerSecurityContext:
-    enabled: true
-    runAsUser: 1001
-    runAsGroup: 1001
-    runAsNonRoot: true
-    privileged: false
-    readOnlyRootFilesystem: true
-    allowPrivilegeEscalation: false
-    capabilities:
-      drop:
-        - ALL
-    seccompProfile:
-      type: RuntimeDefault
+    statefulset:
+      replicaCount: 1
 
-  gateway:
-    enabled: true
-    hostname: ""
-    rateLimit:
-      enabled: false
+    auth:
+      existingSecret: minio
+
+    persistence:
+      enabled: true
+      storageClass: ""
+      size: 10Gi
+
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+    defaultBuckets: "monobase-files"
+
+    buckets:
+      - name: "monobase-files"
+    region: "us-east-1"
+
+    podSecurityContext:
+      enabled: true
+      fsGroup: 1001
+      fsGroupChangePolicy: "OnRootMismatch"
+
+    containerSecurityContext:
+      enabled: true
+      runAsUser: 1001
+      runAsGroup: 1001
+      runAsNonRoot: true
+      privileged: false
+      readOnlyRootFilesystem: true
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+      seccompProfile:
+        type: RuntimeDefault
+
+    gateway:
+      enabled: true
+      hostname: ""
+      rateLimit:
+        enabled: false
 
 # ===== EMAIL TESTING: Mailpit =====
 mailpit:

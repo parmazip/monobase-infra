@@ -15,44 +15,13 @@ spec:
   project: default
 
   source:
-    chart: postgresql
-    repoURL: https://charts.bitnami.com/bitnami
-    targetRevision: 16.x.x
+    repoURL: {{ .Values.global.gitopsRepo | default "https://github.com/parmazip/monobase-infra.git" }}
+    targetRevision: {{ .Values.global.gitopsRevision | default "HEAD" }}
+    path: charts/postgresql
     helm:
       releaseName: postgresql
-      valuesObject:
-        image:
-          repository: {{ .Values.postgresql.image.repository | default "bitnamilegacy/postgresql" }}
-          tag: {{ .Values.postgresql.image.tag | default "16.4.0-debian-12-r13" }}
-        global:
-          postgresql:
-            auth:
-              username: {{ .Values.postgresql.auth.username | default "postgres" }}
-              database: {{ .Values.postgresql.auth.database | default "postgres" }}
-              {{- if .Values.postgresql.auth.existingSecret }}
-              existingSecret: {{ .Values.postgresql.auth.existingSecret }}
-              {{- end }}
-        {{- if .Values.postgresql.auth.secretKeys }}
-        auth:
-          secretKeys:
-            adminPasswordKey: {{ .Values.postgresql.auth.secretKeys.adminPasswordKey | default "postgres-password" }}
-        {{- end }}
-        architecture: {{ .Values.postgresql.architecture | default "standalone" }}
-        persistence:
-          enabled: {{ .Values.postgresql.persistence.enabled | default true }}
-          storageClass: {{ .Values.postgresql.persistence.storageClass | default "" }}
-          size: {{ .Values.postgresql.persistence.size | default "20Gi" }}
-        {{- if .Values.global.nodePool }}
-        # Node pool scheduling - inherited from global.nodePool
-        primary:
-          nodeSelector:
-            node-pool: {{ .Values.global.nodePool }}
-          tolerations:
-            - key: "node-pool"
-              operator: "Equal"
-              value: {{ .Values.global.nodePool | quote }}
-              effect: "NoSchedule"
-        {{- end }}
+      valueFiles:
+        - ../../values/deployments/{{ .Values.global.deploymentName }}.yaml
 
   destination:
     server: https://kubernetes.default.svc

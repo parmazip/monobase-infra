@@ -1,7 +1,0 @@
-# Default values for database-secrets chart
-# These are overridden by parent application values
-
-global:
-  namespace: example
-  domain: example.com
-  environment: production
