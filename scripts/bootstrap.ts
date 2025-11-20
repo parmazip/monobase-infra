@@ -181,8 +181,19 @@ class Bootstrap {
 
   async checkIfRepoIsPublic(): Promise<boolean> {
     try {
-      // Get repo URL from git config
-      const repoUrl = await $`git config --get remote.origin.url`.text();
+      // Read ArgoCD values file to get the repository URL
+      const valuesPath = 'values/infrastructure/argocd.yaml';
+      const valuesContent = await Bun.file(valuesPath).text();
+
+      // Extract repository URL from the repositories config
+      // Format: - type: git\n        url: https://github.com/owner/repo.git
+      const repoUrlMatch = valuesContent.match(/repositories:[\s\S]*?url:\s*(.+)/);
+      if (!repoUrlMatch) {
+        console.log(chalk.yellow('  Could not find repository URL in ArgoCD config'));
+        return false;
+      }
+
+      const repoUrl = repoUrlMatch[1].trim();
 
       // Parse owner/repo from URL (handles both git@ and https://)
       const match = repoUrl.match(/github\.com[:/]([^/]+)\/(.+?)(?:\.git)?$/);
@@ -202,7 +213,8 @@ class Bootstrap {
       }
 
       return false;
-    } catch {
+    } catch (error) {
+      console.log(chalk.yellow(`  Error checking repository: ${error instanceof Error ? error.message : error}`));
       return false;
     }
   }
