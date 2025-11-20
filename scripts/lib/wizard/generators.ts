@@ -146,7 +146,7 @@ provider "google" {
 }
 
 module "gke_cluster" {
-  source = "../../modules/gcp-gke"
+  source = "../terraform/modules/gcp-gke"
 
   cluster_name       = var.cluster_name
   project_id         = var.project_id
@@ -244,6 +244,11 @@ output "cluster_name" {
   value       = module.gke_cluster.cluster_name
 }
 
+output "cluster_id" {
+  description = "GKE cluster ID"
+  value       = module.gke_cluster.cluster_id
+}
+
 output "cluster_endpoint" {
   description = "GKE cluster endpoint"
   value       = module.gke_cluster.cluster_endpoint
@@ -252,12 +257,6 @@ output "cluster_endpoint" {
 output "cluster_ca_certificate" {
   description = "GKE cluster CA certificate"
   value       = module.gke_cluster.cluster_ca_certificate
-  sensitive   = true
-}
-
-output "kubeconfig" {
-  description = "Kubeconfig for kubectl access (used by provision.ts)"
-  value       = module.gke_cluster.kubeconfig
   sensitive   = true
 }
 
@@ -279,16 +278,6 @@ output "velero_sa_email" {
 output "cert_manager_sa_email" {
   description = "cert-manager service account email"
   value       = module.gke_cluster.cert_manager_sa_email
-}
-
-output "network_name" {
-  description = "VPC network name"
-  value       = module.gke_cluster.network_name
-}
-
-output "subnet_name" {
-  description = "Subnet name"
-  value       = module.gke_cluster.subnet_name
 }
 `;
 }
@@ -318,7 +307,7 @@ provider "aws" {
 }
 
 module "eks_cluster" {
-  source = "../../modules/aws-eks"
+  source = "../terraform/modules/aws-eks"
 
   cluster_name       = var.cluster_name
   region             = var.region
@@ -543,7 +532,7 @@ provider "digitalocean" {
 }
 
 module "doks_cluster" {
-  source = "../../modules/do-doks"
+  source = "../terraform/modules/do-doks"
 
   cluster_name       = var.cluster_name
   region             = var.region
@@ -591,7 +580,7 @@ terraform {
 }
 
 module "k3d_cluster" {
-  source = "../../modules/local-k3d"
+  source = "../terraform/modules/local-k3d"
 
   cluster_name        = var.cluster_name
   k3s_version         = var.k3s_version
