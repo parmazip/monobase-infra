@@ -15,7 +15,8 @@ spec:
   project: default
   
   source:
-    chart: oci://docker.io/envoyproxy/gateway-helm
+    chart: gateway-helm
+    repoURL: oci://docker.io/envoyproxy
     targetRevision: {{ .Values.envoyGateway.version | default "v1.2.0" }}
     helm:
       releaseName: envoy-gateway
