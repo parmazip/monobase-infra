@@ -121,10 +121,10 @@ repoServer:
   resources:
     requests:
       cpu: 100m
-      memory: 1Gi  # Increased from 512Mi to prevent OOM
+      memory: 1536Mi  # Increased to handle concurrent Helm renders
     limits:
       cpu: 1
-      memory: 1536Mi  # Optimized from 2Gi (actual usage: 578Mi = 38%)
+      memory: 2560Mi  # Increased to prevent OOM during heavy sync operations
 
   # Schedule on infrastructure node pool
   # nodeSelector:
