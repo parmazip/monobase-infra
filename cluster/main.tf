@@ -23,6 +23,7 @@ module "gke_cluster" {
   cluster_name       = var.cluster_name
   project_id         = var.project_id
   region             = var.region
+  zone               = var.zone
   kubernetes_version = var.kubernetes_version
 
   network_cidr = var.network_cidr

@@ -87,6 +87,7 @@ class ClusterProvisioner {
 
     await this.validatePrerequisites();
     await this.validateClusterDirectory();
+    await this.validateGcpApis();
     await this.terraformInit();
     await this.terraformPlan();
 
@@ -164,6 +165,83 @@ class ClusterProvisioner {
     }
 
     console.log(chalk.green(`✓ Cluster directory validated: ${this.clusterDir}`));
+  }
+
+  // ===== GCP API Validation =====
+
+  async validateGcpApis() {
+    // Check if this is a GCP cluster by looking for project_id in tfvars
+    const tfvarsPath = join(this.clusterDir, 'terraform.tfvars');
+
+    if (!existsSync(tfvarsPath)) {
+      return; // No tfvars file, skip GCP validation
+    }
+
+    const tfvarsContent = await Bun.file(tfvarsPath).text();
+    const projectIdMatch = tfvarsContent.match(/project_id\s*=\s*"([^"]+)"/);
+
+    if (!projectIdMatch) {
+      return; // Not a GCP cluster, skip
+    }
+
+    const projectId = projectIdMatch[1];
+    console.log(chalk.blue('\n==> Step 2: Validate GCP APIs'));
+
+    // Check if gcloud is available
+    try {
+      await $`gcloud --version`.quiet();
+    } catch {
+      console.log(chalk.yellow('⚠️  gcloud CLI not found, skipping API validation'));
+      console.log(chalk.gray('   APIs will be checked when Terraform runs'));
+      return;
+    }
+
+    const spinner = ora('Checking required GCP APIs...').start();
+
+    try {
+      // Check if required APIs are enabled
+      const requiredApis = [
+        'compute.googleapis.com',
+        'container.googleapis.com',
+        'iam.googleapis.com',
+      ];
+
+      const apiStatus = await $`gcloud services list --enabled --project=${projectId} --format=json`.text();
+      const enabledApis = JSON.parse(apiStatus);
+      const enabledApiNames = enabledApis.map((api: any) => api.config.name);
+
+      const missingApis = requiredApis.filter(api => !enabledApiNames.includes(api));
+
+      if (missingApis.length === 0) {
+        spinner.succeed('Required GCP APIs are enabled');
+        return;
+      }
+
+      spinner.info(`${missingApis.length} API(s) need to be enabled`);
+
+      console.log(chalk.yellow('\nRequired APIs not yet enabled:'));
+      missingApis.forEach(api => console.log(chalk.gray(`  - ${api}`)));
+
+      // Enable the APIs
+      const enableSpinner = ora('Enabling GCP APIs...').start();
+
+      try {
+        await $`gcloud services enable ${missingApis.join(' ')} --project=${projectId}`.quiet();
+        enableSpinner.succeed('GCP APIs enabled successfully');
+      } catch (error) {
+        enableSpinner.fail('Failed to enable APIs');
+        console.log(chalk.yellow('\n⚠️  Could not enable APIs automatically'));
+        console.log(chalk.gray('   Please run manually:'));
+        console.log(chalk.cyan(`   gcloud services enable ${missingApis.join(' ')} --project=${projectId}`));
+        throw new Error('Required GCP APIs are not enabled');
+      }
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('Required GCP APIs')) {
+        throw error;
+      }
+      spinner.fail('API validation failed');
+      console.log(chalk.yellow('⚠️  Could not validate GCP APIs, continuing anyway...'));
+    }
   }
 
   // ===== Terraform Operations =====
@@ -269,26 +347,22 @@ class ClusterProvisioner {
   async extractKubeconfig() {
     console.log(chalk.blue('\n==> Step 6: Extract Kubeconfig'));
 
-    const spinner = ora('Extracting kubeconfig...').start();
-    
-    // Get cluster name from cluster directory metadata
-    const clusterName = await this.getClusterName();
-    const kubeconfigPath = join(process.env.HOME || '~', '.kube', clusterName);
+    const spinner = ora('Configuring kubectl...').start();
 
     try {
-      // Get kubeconfig from terraform output
-      const kubeconfig = await $`cd ${this.clusterDir} && ${this.terraformCmd} output -raw kubeconfig`.text();
+      // Get the kubectl configuration command from terraform
+      const configureCmd = await $`cd ${this.clusterDir} && ${this.terraformCmd} output -raw configure_kubectl`.text();
 
-      // Save to file
-      await Bun.write(kubeconfigPath, kubeconfig);
+      // Execute the gcloud command to configure kubectl
+      await $`${configureCmd}`.quiet();
 
-      // Set secure permissions
-      await $`chmod 600 ${kubeconfigPath}`.quiet();
+      spinner.succeed('Kubectl configured successfully');
 
-      spinner.succeed(`Kubeconfig saved: ${kubeconfigPath}`);
-      console.log(chalk.gray(`Export: export KUBECONFIG=${kubeconfigPath}`));
+      const clusterName = await this.getClusterName();
+      console.log(chalk.gray(`Context: ${clusterName}`));
+      console.log(chalk.gray(`Kubeconfig: ~/.kube/config`));
     } catch (error) {
-      spinner.fail('Failed to extract kubeconfig');
+      spinner.fail('Failed to configure kubectl');
       throw error;
     }
   }

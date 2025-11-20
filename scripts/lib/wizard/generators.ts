@@ -12,7 +12,7 @@ export function generateAwsTfvars(config: AwsConfig): string {
 cluster_name       = "${config.clusterName}"
 region             = "${config.region}"
 deployment_profile = "${config.deploymentProfile}"
-kubernetes_version = "1.28"
+kubernetes_version = "1.31"
 
 # Network configuration
 vpc_cidr           = "10.0.0.0/16"
@@ -35,9 +35,9 @@ enable_flow_logs          = true
 # route53_zone_arns = ["arn:aws:route53:::hostedzone/ZXXXXXXXXXXXXX"]
 
 tags = {
-  Environment = "production"
-  ManagedBy   = "terraform"
-  Project     = "monobase-infra"
+  environment = "production"
+  managed-by  = "terraform"
+  project     = "monobase-infra"
 }
 `;
 }
@@ -83,7 +83,7 @@ export function generateGcpTfvars(config: GcpConfig): string {
 cluster_name       = "${config.clusterName}"
 project_id         = "${config.projectId}"
 region             = "${config.region}"
-kubernetes_version = "1.28"
+kubernetes_version = "1.31"
 
 # Network configuration
 network_cidr = "10.0.0.0/16"
@@ -95,8 +95,8 @@ node_pools = {
     machine_type = "n2-standard-8"  # 8 vCPU, 32GB RAM per node
     node_count   = 1                # Initial node count
     min_count    = 1                # Minimum for cost control
-    max_count    = 3                # Conservative maximum
-    disk_size_gb = 100              # Boot disk size
+    max_count    = 2                # Maximum (limited by quota)
+    disk_size_gb = 50               # Boot disk size (fits within quota)
   }
 }
 
@@ -105,20 +105,19 @@ enable_workload_identity = true
 
 # Resource labels
 tags = {
-  Environment = "production"
-  ManagedBy   = "terraform"
-  Project     = "monobase-infra"
+  environment = "production"
+  managed-by  = "terraform"
+  project     = "monobase-infra"
 }
 
 # Cost Estimates (${config.region}):
 # - Control plane (regional): ~$73/month
 # - 1x n2-standard-8 node: ~$291/month
-# - Storage (100GB PD-SSD): ~$17/month
-# Total: ~$381/month
+# - Storage (50GB PD-SSD): ~$8.50/month
+# Total: ~$372.50/month
 #
-# Scaling (auto-scale 1-3 nodes):
-# - 2 nodes: ~$672/month
-# - 3 nodes: ~$963/month
+# Scaling (auto-scale 1-2 nodes):
+# - 2 nodes: ~$655/month
 `;
 }
 

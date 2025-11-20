@@ -12,9 +12,15 @@ variable "project_id" {
 }
 
 variable "region" {
-  description = "GCP region for the cluster (regional cluster spans multiple zones)"
+  description = "GCP region for network resources"
   type        = string
   default     = "us-central1"
+}
+
+variable "zone" {
+  description = "GCP zone for zonal cluster (optional, if not set creates regional cluster)"
+  type        = string
+  default     = null
 }
 
 variable "kubernetes_version" {

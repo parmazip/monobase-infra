@@ -23,7 +23,7 @@ output "cluster_ca_certificate" {
 
 output "configure_kubectl" {
   description = "Command to configure kubectl"
-  value       = "gcloud container clusters get-credentials ${var.cluster_name} --region ${var.region} --project ${var.project_id}"
+  value = var.zone != null ? "gcloud container clusters get-credentials ${var.cluster_name} --zone ${var.zone} --project ${var.project_id}" : "gcloud container clusters get-credentials ${var.cluster_name} --region ${var.region} --project ${var.project_id}"
 }
 
 output "external_secrets_sa_email" {

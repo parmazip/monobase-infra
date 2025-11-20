@@ -4,7 +4,8 @@
 cluster_name       = "monobase-main"
 project_id         = "velvety-ring-460411-k5"
 region             = "asia-southeast1"
-kubernetes_version = "1.28"
+zone               = "asia-southeast1-a"  # Zonal cluster (1 control plane) to fit SSD quota
+kubernetes_version = "1.31"
 
 # Network configuration
 network_cidr = "10.0.0.0/16"
@@ -16,8 +17,9 @@ node_pools = {
     machine_type = "n2-standard-8"  # 8 vCPU, 32GB RAM per node
     node_count   = 1                # Initial node count
     min_count    = 1                # Minimum for cost control
-    max_count    = 3                # Conservative maximum
+    max_count    = 2                # Maximum (limited by quota)
     disk_size_gb = 100              # Boot disk size
+    disk_type    = "pd-standard"    # Standard disk (not SSD, avoids SSD quota)
   }
 }
 
@@ -26,9 +28,9 @@ enable_workload_identity = true
 
 # Resource labels
 tags = {
-  Environment = "production"
-  ManagedBy   = "terraform"
-  Project     = "monobase-infra"
+  environment = "production"
+  managed-by  = "terraform"
+  project     = "monobase-infra"
 }
 
 # Cost Estimates (asia-southeast1):

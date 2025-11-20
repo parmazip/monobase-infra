@@ -41,6 +41,7 @@ terraform/**/kubeconfig.yaml
 *.tfstate.backup
 .terraform/
 .terragrunt-cache/
+cluster/.terraform.tfstate.lock.info
 
 # IDE and OS files
 .vscode/

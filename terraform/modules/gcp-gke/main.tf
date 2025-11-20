@@ -2,7 +2,7 @@
 
 resource "google_container_cluster" "main" {
   name     = var.cluster_name
-  location = var.region
+  location = var.zone != null ? var.zone : var.region
   project  = var.project_id
 
   min_master_version = var.kubernetes_version
@@ -54,7 +54,7 @@ resource "google_container_node_pool" "main" {
   for_each = var.node_pools
 
   name     = each.key
-  location = var.region
+  location = var.zone != null ? var.zone : var.region
   cluster  = google_container_cluster.main.name
   project  = var.project_id
 
@@ -68,6 +68,7 @@ resource "google_container_node_pool" "main" {
   node_config {
     machine_type = each.value.machine_type
     disk_size_gb = each.value.disk_size_gb
+    disk_type    = lookup(each.value, "disk_type", "pd-standard")
 
     oauth_scopes = [
       "https://www.googleapis.com/auth/cloud-platform"
