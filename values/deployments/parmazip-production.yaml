@@ -18,7 +18,7 @@ global:
 
 # ===== CORE: Monobase API =====
 api:
-  enabled: false
+  enabled: true
 
   image:
     repository: ghcr.io/monobaselabs/api
@@ -68,7 +68,7 @@ api:
 
 # ===== CORE: Monobase Account Frontend =====
 account:
-  enabled: false
+  enabled: true
 
   image:
     repository: ghcr.io/monobaselabs/accountapp
