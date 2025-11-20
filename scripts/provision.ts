@@ -632,7 +632,7 @@ ${chalk.bold('PREREQUISITES:')}
 ${chalk.bold('OPTIONS:')}
   ${chalk.cyan('--help')}                    Show this help message
   ${chalk.cyan('--dry-run')}                 Preview changes without executing
-  ${chalk.cyan('--auto-approve')}            Skip confirmation prompts
+  ${chalk.cyan('--auto-approve, --yes')}     Skip confirmation prompts
   ${chalk.cyan('--merge-kubeconfig')}        Merge kubeconfig into ~/.kube/config
 
   ${chalk.bold('Destroy Options:')}
@@ -675,6 +675,7 @@ function parseCliArgs(): { config: ProvisionConfig; wizardFlags: WizardFlags } {
       help: { type: 'boolean', default: false },
       'dry-run': { type: 'boolean', default: false },
       'auto-approve': { type: 'boolean', default: false },
+      yes: { type: 'boolean', default: false }, // Alias for auto-approve
       'merge-kubeconfig': { type: 'boolean', default: false },
       destroy: { type: 'boolean', default: false },
       'keep-kubeconfig': { type: 'boolean', default: false },
@@ -696,7 +697,7 @@ function parseCliArgs(): { config: ProvisionConfig; wizardFlags: WizardFlags } {
   return {
     config: {
       dryRun: values['dry-run'] || false,
-      autoApprove: values['auto-approve'] || false,
+      autoApprove: values['auto-approve'] || values.yes || false,
       mergeKubeconfig: values['merge-kubeconfig'] || false,
       destroy: values.destroy || false,
       keepKubeconfig: values['keep-kubeconfig'] || false,
