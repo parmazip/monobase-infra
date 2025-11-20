@@ -162,11 +162,11 @@ externalSecrets:
   # Example secrets configuration:
   # secrets:
   #   - secretKey: GOOGLE_CLIENT_ID
-  #     remoteKey: mycure-staging-google-oauth-client-id
+  #     remoteKey: acme-staging-google-oauth-client-id
   #   - secretKey: GOOGLE_CLIENT_SECRET
-  #     remoteKey: mycure-staging-google-oauth-client-secret
+  #     remoteKey: acme-staging-google-oauth-client-secret
   #   - secretKey: STRIPE_SECRET_KEY
-  #     remoteKey: mycure-staging-stripe-secret-key
+  #     remoteKey: acme-staging-stripe-secret-key
 
 # MongoDB dependency configuration (deployed separately)
 mongodb:

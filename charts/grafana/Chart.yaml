@@ -9,7 +9,7 @@ keywords:
   - grafana
   - prometheus
   - visualization
-home: https://github.com/mycurelabs/monobase-infra
+home: https://github.com/monobaselabs/monobase-infra
 sources:
   - https://github.com/grafana/grafana
 maintainers:

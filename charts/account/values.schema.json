@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "MyCureApp Helm Chart Values",
-  "description": "Configuration values for MyCureApp frontend application",
+  "title": "Account App Helm Chart Values",
+  "description": "Configuration values for Account App frontend application",
   "type": "object",
   "properties": {
     "global": {
