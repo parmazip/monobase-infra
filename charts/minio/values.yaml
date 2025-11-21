@@ -80,9 +80,20 @@ minio:
     seccompProfile:
       type: RuntimeDefault
 
-  # Gateway configuration (optional)
+  # Gateway API HTTPRoute configuration (optional)
   gateway:
     enabled: false
-    hostname: ""
+    hostname: ""  # Empty = uses storage.{global.domain}
+    parentRefs:
+      - name: shared-gateway
+        namespace: gateway-system
+
+    # Optional: Rate limiting configuration
     rateLimit:
       enabled: false
+      perIP:
+        requests: 100
+        unit: Second
+      burst:
+        requests: 200
+        unit: Second

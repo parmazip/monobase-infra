@@ -54,3 +54,29 @@ Create the name of the namespace to use
 {{- define "minio.namespace" -}}
 {{- default .Release.Namespace .Values.namespaceOverride }}
 {{- end }}
+
+{{/*
+Resolve the gateway name to use
+*/}}
+{{- define "minio.gateway.name" -}}
+{{- .Values.minio.gateway.parentRefs | first | dig "name" .Values.global.gateway.name }}
+{{- end }}
+
+{{/*
+Resolve the gateway namespace to use
+*/}}
+{{- define "minio.gateway.namespace" -}}
+{{- .Values.minio.gateway.parentRefs | first | dig "namespace" .Values.global.gateway.namespace }}
+{{- end }}
+
+{{/*
+Resolve the hostname for HTTPRoute
+Default: storage.{global.domain}
+*/}}
+{{- define "minio.gateway.hostname" -}}
+{{- if .Values.minio.gateway.hostname }}
+{{- .Values.minio.gateway.hostname }}
+{{- else }}
+{{- printf "storage.%s" .Values.global.domain }}
+{{- end }}
+{{- end }}
