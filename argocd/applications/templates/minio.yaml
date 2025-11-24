@@ -32,10 +32,12 @@ spec:
     path: charts/minio
     helm:
       releaseName: minio
-      # Pass minio section values directly to chart
-      # The deployment values file has minio config nested under 'minio:' key
+      # Pass minio section values along with global values
+      # The minio chart uses global.gateway and global.domain for HTTPRoute configuration
       valuesObject:
-        {{- .Values.minio | toYaml | nindent 8 }}
+        global:
+          {{- .Values.global | toYaml | nindent 10 }}
+        {{- omit .Values.minio "global" | toYaml | nindent 8 }}
 
   destination:
     server: https://kubernetes.default.svc
