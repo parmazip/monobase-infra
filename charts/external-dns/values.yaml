@@ -4,14 +4,17 @@
 # Global enable/disable toggle
 enabled: true
 
-# Cloudflare ExternalSecret configuration
-# Creates ExternalSecret to sync Cloudflare API token from GCP Secret Manager
-cloudflare:
-  externalSecret:
-    enabled: true
-    secretStore: "gcp-secretstore"
-    refreshInterval: "1h"
-    remoteKey: "infrastructure-cloudflare-api-token"
+# External Secrets configuration
+# Creates ExternalSecret to sync DNS provider API token from secret manager
+externalSecrets:
+  enabled: false
+  secretStore: "gcp-secretstore"
+  refreshInterval: "1h"
+  remoteKey: ""  # Must be provided in deployment values
+  generator:
+    generate: false  # Manual input required (obtain from DNS provider)
+    type: token
+    description: ""  # Must be provided in deployment values
 
 # External DNS image configuration
 image:

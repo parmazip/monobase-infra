@@ -1,13 +1,10 @@
 #!/usr/bin/env bun
 /**
  * Secrets Management CLI
- * Provider-agnostic secrets management with GCP implementation
+ * Values-driven secrets management with automatic discovery
  */
 
 import { parseArgs } from "util";
-import { existsSync } from "fs";
-import { join, resolve } from "path";
-import { glob } from "glob";
 import {
   intro,
   outro,
@@ -16,32 +13,42 @@ import {
   logInfo,
   logWarning,
   logSuccess,
-  promptSelect,
   promptText,
   promptPassword,
   promptConfirm,
   clack,
 } from "@/lib/prompts";
-import { generatePassword, generateKey } from "@/lib/utils";
-import { parseSecretsFile, resolveTargetNamespace } from "@/secrets/parser";
-import { GCPProvider } from "@/secrets/providers/gcp";
-import { generateClusterSecretStoreFile } from "@/secrets/generators/clustersecretstore";
-import { generateExternalSecretFiles } from "@/secrets/generators/externalsecret";
-import { setupGCPInfrastructure } from "@/secrets/gcp-setup";
-import { setupKubernetesInfrastructure } from "@/secrets/k8s-setup";
-import { setupTLSInfrastructure } from "@/secrets/tls-setup";
-import { validateCluster } from "@/secrets/validate-cluster";
-import type { ParsedSecretsFile, SecretKey } from "@/secrets/types";
+import {
+  scanValuesFiles,
+  groupByDeployment,
+  filterGeneratable,
+  type DiscoveredSecret,
+} from "@/secrets/scanner";
+import { SecretProvider, detectGCPProjectId, readProjectIdFromValues } from "@/secrets/provider";
+import { generateSecretValue, formatSecretDescription } from "@/secrets/generator";
+import {
+  readClusterSecretStoreFromValues,
+  checkClusterSecretStoreStatus,
+  checkExternalSecretsOperator,
+  generateSetupInstructions,
+  checkServiceAccountKeySecret,
+  saveClusterSecretStoreConfig,
+  checkGCloudReady,
+  createGCPServiceAccountAndKey,
+  listGCPProjects,
+  type ClusterSecretStoreConfig,
+} from "@/secrets/configurator";
+import { validateExternalSecrets } from "@/secrets/validator";
 
 // Parse command-line arguments
 const { values, positionals } = parseArgs({
   args: process.argv.slice(2),
   options: {
-    provider: { type: "string", short: "p", default: "gcp" },
-    project: { type: "string" },
+    deployment: { type: "string", short: "d" },
+    project: { type: "string", short: "p" },
     kubeconfig: { type: "string" },
     "dry-run": { type: "boolean", default: false },
-    full: { type: "boolean", default: false },
+    yes: { type: "boolean", short: "y", default: false },
     help: { type: "boolean", short: "h" },
   },
   allowPositionals: true,
@@ -52,609 +59,657 @@ const command = positionals[0] || "help";
 // Show help
 if (values.help || command === "help") {
   console.log(`
-Secrets Management CLI
+Secrets Management CLI - Values-Driven Architecture
 
 Usage: bun scripts/secrets.ts <command> [options]
 
 Commands:
-  setup           Complete secrets setup (GCP + K8s + manifests)
-  setup --full    Full infrastructure setup (GCP SA + K8s + TLS + manifests)
-  generate        Generate ExternalSecret manifests only
-  validate        Validate secrets.yaml files
-  validate-cluster  Validate cluster state (ExternalSecrets synced)
+  discover [--deployment=X]  Discover all secrets from values files
+  check [--deployment=X]      Compare values vs GCP Secret Manager
+  setup [--project=X]         Initialize ClusterSecretStore
+  generate [--deployment=X]   Create missing secrets in GCP
+  validate [--deployment=X]   Verify ExternalSecret sync status
+  sync                        Full workflow: discover → check → generate → validate
 
 Options:
-  -p, --provider <name>   Provider name (default: gcp, auto-detects from existing files)
-  --project <id>          GCP project ID (auto-detects from gcp-secretstore.yaml or gcloud config)
-  --kubeconfig <path>     Path to kubeconfig (auto-discovers from ~/.kube/, shows selection menu)
-  --full                  Full setup including infrastructure bootstrapping
-  --dry-run               Show what would be done without making changes
-  -h, --help              Show this help message
-
-Environment Variables:
-  GCP_PROJECT_ID          Default GCP project ID
-  KUBECONFIG              Default kubeconfig path
-
-Auto-Detection Features:
-  Project ID Priority:    CLI flag > env var > gcp-secretstore.yaml > gcloud config > prompt
-  Provider Priority:      CLI flag > existing *-secretstore.yaml > default (gcp)
-  Kubeconfig Priority:    CLI flag > env var > ~/.kube/ discovery > prompt
-  Context Display:        Shows current kubectl context when kubeconfig is set
+  -d, --deployment <name>  Filter by specific deployment
+  -p, --project <id>       GCP project ID (auto-detects if not provided)
+  --kubeconfig <path>      Path to kubeconfig
+  --dry-run                Show what would be done without making changes
+  -y, --yes                Skip confirmation prompts
+  -h, --help               Show this help message
 
 Examples:
-  # Auto-detect everything (idempotent re-runs)
-  bun scripts/secrets.ts generate
-  
-  # With explicit values
-  bun scripts/secrets.ts setup --provider gcp --project mc-v4-prod
-  bun scripts/secrets.ts setup --full --project mc-v4-prod
-  bun scripts/secrets.ts generate --dry-run
+  # Discover all secrets from values files
+  bun scripts/secrets.ts discover
+
+  # Check which secrets exist in GCP
+  bun scripts/secrets.ts check
+
+  # Generate missing secrets for staging deployment
+  bun scripts/secrets.ts generate --deployment=parmazip-staging
+
+  # Validate ExternalSecret sync status
   bun scripts/secrets.ts validate
-  bun scripts/secrets.ts validate-cluster
-  
-  # Using environment variables
-  export GCP_PROJECT_ID=mc-v4-prod
-  bun scripts/secrets.ts setup
+
+  # Full sync workflow
+  bun scripts/secrets.ts sync --project=monobase-prod
 `);
   process.exit(0);
 }
 
 /**
- * Auto-detect GCP project from existing gcp-secretstore.yaml
+ * Discover command - scan values files and show all secrets
  */
-function detectProjectFromClusterSecretStore(): string | undefined {
-  const secretStorePath = "infrastructure/external-secrets/gcp-secretstore.yaml";
-  
-  if (!existsSync(secretStorePath)) {
-    return undefined;
-  }
+async function discoverCommand() {
+  intro("🔍 Discovering secrets from values files");
 
-  try {
-    const content = require("fs").readFileSync(secretStorePath, "utf-8");
-    const yaml = require("yaml");
-    const parsed = yaml.parse(content);
-    
-    const projectId = parsed?.spec?.provider?.gcpsm?.projectID;
-    
-    // Check if it's a real value (not a template like {{ .Values.projectID }})
-    if (projectId && typeof projectId === "string" && !projectId.includes("{{")) {
-      return projectId;
-    }
-  } catch (error) {
-    // Ignore parsing errors
-  }
-  
-  return undefined;
-}
+  const spinner = clack.spinner();
+  spinner.start("Scanning values files...");
 
-/**
- * Auto-detect GCP project from gcloud config
- */
-function detectProjectFromGcloud(): string | undefined {
-  try {
-    const { execSync } = require("child_process");
-    const projectId = execSync("gcloud config get-value project 2>/dev/null", {
-      encoding: "utf-8",
-      stdio: ["pipe", "pipe", "ignore"],
-    }).trim();
-    
-    return projectId || undefined;
-  } catch (error) {
-    return undefined;
-  }
-}
-
-/**
- * Get GCP project ID with auto-detection
- * Priority: CLI flag > env var > existing file > gcloud config
- */
-function getProjectId(): string | undefined {
-  // 1. CLI flag (highest priority)
-  if (values.project) {
-    return values.project as string;
-  }
-  
-  // 2. Environment variable
-  if (process.env.GCP_PROJECT_ID) {
-    return process.env.GCP_PROJECT_ID;
-  }
-  
-  // 3. Auto-detect from existing gcp-secretstore.yaml
-  const detectedFromFile = detectProjectFromClusterSecretStore();
-  if (detectedFromFile) {
-    logInfo(`Auto-detected GCP project from existing ClusterSecretStore: ${detectedFromFile}`);
-    return detectedFromFile;
-  }
-  
-  // 4. Auto-detect from gcloud config
-  const detectedFromGcloud = detectProjectFromGcloud();
-  if (detectedFromGcloud) {
-    logInfo(`Auto-detected GCP project from gcloud config: ${detectedFromGcloud}`);
-    return detectedFromGcloud;
-  }
-  
-  return undefined;
-}
-
-/**
- * Discover all kubeconfig files in ~/.kube/
- */
-function discoverKubeconfigs(): Array<{ label: string; value: string; description?: string }> {
-  const { readdirSync, statSync } = require("fs");
-  const { homedir } = require("os");
-  const { join, basename } = require("path");
-  
-  const kubeDir = join(homedir(), ".kube");
-  const configs: Array<{ label: string; value: string; description?: string }> = [];
-  
-  if (!existsSync(kubeDir)) {
-    return configs;
-  }
-  
-  try {
-    const files = readdirSync(kubeDir);
-    
-    for (const file of files) {
-      const fullPath = join(kubeDir, file);
-      
-      // Skip directories and backup files
-      if (!statSync(fullPath).isFile() || file.endsWith('.bak') || file.endsWith('~')) {
-        continue;
-      }
-      
-      const isCurrent = fullPath === process.env.KUBECONFIG || 
-                        (file === 'config' && !process.env.KUBECONFIG);
-      
-      configs.push({
-        label: isCurrent ? `${file} *` : file,
-        value: fullPath,
-        description: isCurrent ? "Current" : undefined,
-      });
-    }
-  } catch (error) {
-    // Ignore errors
-  }
-  
-  // Sort with current config first
-  configs.sort((a, b) => {
-    if (a.description === "Current") return -1;
-    if (b.description === "Current") return 1;
-    return a.label.localeCompare(b.label);
+  const results = await scanValuesFiles({
+    deployment: values.deployment as string | undefined,
   });
-  
-  return configs;
-}
 
-/**
- * Get kubeconfig path with auto-discovery
- * Priority: CLI flag > env var > interactive selection
- */
-async function getKubeconfigPathWithDiscovery(): Promise<string | undefined> {
-  // 1. CLI flag (highest priority)
-  if (values.kubeconfig) {
-    return values.kubeconfig as string;
-  }
-  
-  // 2. Environment variable
-  if (process.env.KUBECONFIG) {
-    return process.env.KUBECONFIG;
-  }
-  
-  // 3. Interactive selection from discovered configs
-  const discovered = discoverKubeconfigs();
-  
-  if (discovered.length === 0) {
-    logWarning("No kubeconfig files found in ~/.kube/");
-    return undefined;
-  }
-  
-  if (discovered.length === 1) {
-    logInfo(`Using kubeconfig: ${discovered[0].label}`);
-    return discovered[0].value;
-  }
-  
-  // Multiple configs found - offer selection
-  const selected = await promptSelect({
-    message: "Select kubeconfig file:",
-    options: discovered.map(c => ({
-      label: c.label,
-      value: c.value,
-      hint: c.description,
-    })),
-  });
-  
-  return selected as string;
-}
+  spinner.stop("Scan complete");
 
-function getKubeconfigPath(): string | undefined {
-  return (values.kubeconfig as string | undefined) || process.env.KUBECONFIG;
-}
+  if (results.totalSecrets === 0) {
+    logWarning("No secrets found with externalSecrets.enabled = true");
+    outro("🔍 Discovery complete");
+    return;
+  }
 
-/**
- * Auto-detect provider from existing ClusterSecretStore files
- */
-function detectProviderFromClusterSecretStore(): string | undefined {
-  const providers = [
-    { name: "gcp", file: "infrastructure/external-secrets/gcp-secretstore.yaml" },
-    { name: "aws", file: "infrastructure/external-secrets/aws-secretstore.yaml" },
-    { name: "azure", file: "infrastructure/external-secrets/azure-secretstore.yaml" },
-  ];
-  
-  for (const provider of providers) {
-    if (existsSync(provider.file)) {
-      logInfo(`Auto-detected provider from existing ClusterSecretStore: ${provider.name}`);
-      return provider.name;
+  // Group by deployment
+  const grouped = groupByDeployment(results.secrets);
+
+  logInfo(`Found ${results.totalSecrets} secrets across ${grouped.size} deployments`);
+  logInfo(`Secrets with generator: ${results.secretsWithGenerator}`);
+
+  // Display grouped results
+  for (const [deployment, secrets] of grouped.entries()) {
+    log(`\n📦 ${deployment} (${secrets.length} secrets):`);
+
+    for (const secret of secrets) {
+      const generatorInfo = secret.generator?.generate
+        ? ` [${formatSecretDescription(secret.generator)}]`
+        : "";
+
+      log(`   ${secret.chart}: ${secret.remoteKey}${generatorInfo}`);
     }
   }
-  
-  return undefined;
+
+  outro("🔍 Discovery complete");
 }
 
 /**
- * Get provider with auto-detection
- * Priority: CLI flag > detected from file > default (gcp)
+ * Check command - compare values vs GCP Secret Manager
  */
-function getProvider(): string {
-  // 1. CLI flag (highest priority)
-  if (values.provider && values.provider !== "gcp") {
-    return values.provider as string;
-  }
-  
-  // 2. Auto-detect from existing files
-  const detected = detectProviderFromClusterSecretStore();
-  if (detected) {
-    return detected;
-  }
-  
-  // 3. Default to gcp
-  return "gcp";
-}
+async function checkCommand() {
+  intro("🔎 Checking secrets in GCP Secret Manager");
 
-/**
- * Display current kubectl context
- */
-function displayCurrentContext(kubeconfigPath?: string): void {
-  try {
-    const { execSync } = require("child_process");
-    const env = kubeconfigPath ? { ...process.env, KUBECONFIG: kubeconfigPath } : process.env;
-    
-    const context = execSync("kubectl config current-context", {
-      encoding: "utf-8",
-      env,
-      stdio: ["pipe", "pipe", "ignore"],
-    }).trim();
-    
-    logSuccess(`Connected to cluster: ${context}`);
-  } catch (error) {
-    logWarning("Could not determine current kubectl context");
-  }
-}
-
-/**
- * Find all secrets.yaml files
- */
-function findSecretsFiles(): string[] {
-  const patterns = [
-    "infrastructure/secrets.yaml",
-    "deployments/*/secrets.yaml",
-  ];
-
-  const files: string[] = [];
-  for (const pattern of patterns) {
-    const matches = glob.sync(pattern, { cwd: process.cwd() });
-    files.push(...matches.map((f) => resolve(f)));
-  }
-
-  return files;
-}
-
-/**
- * Validate command - check all secrets.yaml files
- */
-async function validateCommand() {
-  intro("🔍 Validating secrets.yaml files");
-
-  const files = findSecretsFiles();
-
-  if (files.length === 0) {
-    logWarning("No secrets.yaml files found");
+  // Check if ClusterSecretStore is configured (blocking requirement)
+  const config = readClusterSecretStoreFromValues();
+  if (!config || !config.projectId) {
+    logError("ClusterSecretStore not configured in values/infrastructure/main.yaml");
+    logInfo("Run setup first: bun scripts/secrets.ts setup");
     process.exit(1);
   }
 
-  logInfo(`Found ${files.length} secrets.yaml files`);
+  const kubeconfigPath = values.kubeconfig as string | undefined;
 
-  let hasErrors = false;
+  // Get project ID with new priority order
+  let projectId = (values.project as string) || await detectGCPProjectId(kubeconfigPath);
 
-  for (const file of files) {
-    try {
-      const parsed = parseSecretsFile(file);
-      logSuccess(`✓ ${file} (${parsed.config.secrets.length} secrets)`);
-    } catch (error: any) {
-      logError(`✗ ${file}: ${error.message}`);
-      hasErrors = true;
-    }
-  }
-
-  if (hasErrors) {
-    outro("❌ Validation failed");
-    process.exit(1);
-  } else {
-    outro("✅ All secrets.yaml files are valid");
-  }
-}
-
-/**
- * Generate command - create ExternalSecret manifests
- */
-async function generateCommand() {
-  intro("📝 Generating ExternalSecret manifests");
-
-  // Get GCP project ID from CLI args, env vars, or prompt
-  let projectId = getProjectId();
   if (!projectId) {
     projectId = await promptText({
       message: "GCP Project ID:",
-      placeholder: "mc-v4-prod",
+      placeholder: "monobase-prod",
       validate: (value) => (value ? undefined : "Project ID is required"),
     });
   }
 
-  const provider = new GCPProvider(projectId);
+  logInfo(`Using GCP project: ${projectId}`);
 
-  // Find and parse secrets files
-  const files = findSecretsFiles();
-  if (files.length === 0) {
-    logWarning("No secrets.yaml files found");
-    process.exit(1);
+  // Scan values files
+  const spinner = clack.spinner();
+  spinner.start("Scanning values files...");
+
+  const results = await scanValuesFiles({
+    deployment: values.deployment as string | undefined,
+  });
+
+  spinner.stop(`Found ${results.totalSecrets} secrets`);
+
+  if (results.totalSecrets === 0) {
+    logWarning("No secrets found");
+    outro("🔎 Check complete");
+    return;
   }
 
-  const parsed = files.map((f) => parseSecretsFile(f));
-
-  // Generate ClusterSecretStore
-  const clusterSecretStorePath = "infrastructure/external-secrets/gcp-secretstore.yaml";
-
-  if (values["dry-run"]) {
-    logInfo(`[DRY RUN] Would generate: ${clusterSecretStorePath}`);
-  } else {
-    generateClusterSecretStoreFile(provider, "gcp-secretstore", clusterSecretStorePath);
-  }
-
-  // Generate ExternalSecrets
-  const externalsecrets: Array<{
-    secret: any;
-    namespace: string;
-    outputPath: string;
-  }> = [];
-
-  for (const file of parsed) {
-    for (const secret of file.config.secrets) {
-      const namespace = resolveTargetNamespace(secret, file.defaultNamespace);
-      const outputPath = `infrastructure/external-secrets/${secret.name}-externalsecret.yaml`;
-
-      externalsecrets.push({ secret, namespace, outputPath });
-
-      if (values["dry-run"]) {
-        logInfo(`[DRY RUN] Would generate: ${outputPath}`);
-      }
-    }
-  }
+  // Initialize provider
+  const provider = new SecretProvider(projectId);
 
   if (!values["dry-run"]) {
-    generateExternalSecretFiles(provider, externalsecrets);
-  }
-
-  outro(
-    values["dry-run"]
-      ? "🎯 Dry run complete"
-      : `✅ Generated ${externalsecrets.length + 1} manifests`
-  );
-}
-
-/**
- * Setup command - full secrets setup
- */
-async function setupCommand() {
-  intro(values.full ? "🔐 Full Infrastructure Setup" : "🔐 Secrets Setup");
-
-  // Get GCP project ID with auto-detection
-  let projectId = getProjectId();
-  if (!projectId) {
-    projectId = await promptText({
-      message: "GCP Project ID:",
-      placeholder: "mc-v4-prod",
-      validate: (value) => (value ? undefined : "Project ID is required"),
-    });
-  }
-
-  // Get kubeconfig path with auto-discovery (only if needed for full setup)
-  let kubeconfigPath: string | undefined;
-  if (values.full && !values["dry-run"]) {
-    kubeconfigPath = await getKubeconfigPathWithDiscovery();
-    if (kubeconfigPath) {
-      displayCurrentContext(kubeconfigPath);
-    }
-  } else {
-    kubeconfigPath = getKubeconfigPath();
-  }
-
-  // Phase 1: GCP Infrastructure Setup (if --full and not dry-run)
-  if (values.full && !values["dry-run"]) {
-    logInfo("\n📦 Phase 1: GCP Infrastructure Setup");
-    try {
-      const gcpResult = await setupGCPInfrastructure(projectId);
-      logSuccess("GCP infrastructure configured");
-
-      // Phase 2: Kubernetes Infrastructure Setup
-      logInfo("\n☸️  Phase 2: Kubernetes Infrastructure Setup");
-      await setupKubernetesInfrastructure(gcpResult.keyFilePath, kubeconfigPath);
-      logSuccess("Kubernetes infrastructure configured");
-
-      // Phase 3: TLS Setup
-      logInfo("\n🔒 Phase 3: TLS Setup");
-      await setupTLSInfrastructure();
-    } catch (error: any) {
-      logError(error.message);
-      process.exit(1);
-    }
-  } else if (values.full && values["dry-run"]) {
-    logWarning("\n⚠️  Skipping infrastructure setup in dry-run mode");
-    logInfo("Infrastructure setup would include:");
-    logInfo("  - GCP service account creation");
-    logInfo("  - IAM permissions");
-    logInfo("  - Service account key generation");
-    logInfo("  - Kubernetes namespace and secrets");
-    logInfo("  - TLS ClusterIssuer manifests");
-  }
-
-  // Phase 4: Secrets Setup
-  logInfo(values.full ? "\n🔑 Phase 4: Secrets Setup" : "\n🔑 Secrets Setup");
-
-  const provider = new GCPProvider(projectId);
-
-  // Initialize provider (skip in dry-run mode)
-  if (!values["dry-run"]) {
-    const spinner = clack.spinner();
-    spinner.start("Initializing GCP provider");
+    spinner.start("Initializing GCP provider...");
     try {
       await provider.initialize();
-      spinner.stop("GCP provider initialized");
+      spinner.stop("GCP provider ready");
     } catch (error: any) {
       spinner.stop("Failed to initialize GCP provider");
       logError(error.message);
       process.exit(1);
     }
-  } else {
-    logInfo("Skipping GCP provider initialization (dry-run mode)");
   }
 
-  // Find and parse secrets files
-  const files = findSecretsFiles();
-  if (files.length === 0) {
-    logWarning("No secrets.yaml files found");
-    process.exit(1);
-  }
+  // Check all secrets
+  const remoteKeys = results.secrets.map((s) => s.remoteKey);
+  spinner.start(`Checking ${remoteKeys.length} secrets...`);
 
-  logInfo(`Found ${files.length} secrets.yaml files`);
+  const statuses = values["dry-run"]
+    ? new Map()
+    : await provider.checkSecrets(remoteKeys);
 
-  const parsed = files.map((f) => parseSecretsFile(f));
+  spinner.stop("Check complete");
 
-  // In dry-run mode, skip secret checking and creation
-  if (values["dry-run"]) {
-    logInfo("\n⚠️  Skipping secret checking and creation in dry-run mode");
-    
-    // Still generate manifests in dry-run
-    logInfo("\n📝 Generating manifests");
-    await generateCommand();
-    outro("🎯 Dry run complete");
-    return;
-  }
+  // Analyze results
+  const grouped = groupByDeployment(results.secrets);
+  let totalExists = 0;
+  let totalMissing = 0;
 
-  // Collect all secret keys that need values
-  const secretsToCreate: Array<{ remoteKey: string; value: string }> = [];
+  for (const [deployment, secrets] of grouped.entries()) {
+    log(`\n📦 ${deployment}:`);
 
-  for (const file of parsed) {
-    logInfo(`\n📁 Processing: ${file.deploymentName}`);
+    for (const secret of secrets) {
+      const status = statuses.get(secret.remoteKey);
+      const exists = status?.exists || false;
 
-    for (const secret of file.config.secrets) {
-      log(`  Secret: ${secret.name}`);
-
-      for (const key of secret.keys) {
-        // Check if secret already exists
-        const exists = await provider.secretExists(key.remoteKey);
-
-        if (exists) {
-          logInfo(`    ✓ ${key.key} (exists)`);
-          continue;
-        }
-
-        // Generate or prompt for value
-        let value: string;
-
-        if (key.generate) {
-          // Auto-generate
-          if (key.key.includes("password")) {
-            value = generatePassword(32);
-          } else if (key.key.includes("key")) {
-            value = generateKey(32);
-          } else {
-            value = generatePassword(32);
-          }
-          logInfo(`    ⚙ ${key.key} (generated)`);
-        } else {
-          // Prompt for value
-          const promptMessage = key.prompt || `Enter value for ${key.key}:`;
-          value = await promptPassword({ message: `    ${promptMessage}` });
-        }
-
-        secretsToCreate.push({ remoteKey: key.remoteKey, value });
+      if (exists) {
+        totalExists++;
+        logSuccess(`   ✓ ${secret.chart}: ${secret.remoteKey}`);
+      } else {
+        totalMissing++;
+        const generatorInfo = secret.generator?.generate ? " (can generate)" : " (needs manual input)";
+        logWarning(`   ✗ ${secret.chart}: ${secret.remoteKey}${generatorInfo}`);
       }
     }
   }
 
-  // Confirm before creating
-  if (secretsToCreate.length > 0 && !values["dry-run"]) {
+  log("");
+  logInfo(`Total: ${totalExists} exist, ${totalMissing} missing`);
+
+  outro("🔎 Check complete");
+}
+
+/**
+ * Setup command - initialize ClusterSecretStore
+ */
+async function setupCommand() {
+  intro("⚙️  Setting up ClusterSecretStore");
+
+  const kubeconfigPath = values.kubeconfig as string | undefined;
+
+  // Step 1: Check if External Secrets Operator is installed (blocking)
+  if (!values["dry-run"]) {
+    const spinner = clack.spinner();
+    spinner.start("Checking External Secrets Operator...");
+
+    const esoStatus = await checkExternalSecretsOperator(kubeconfigPath);
+
+    if (!esoStatus.installed) {
+      spinner.stop("External Secrets Operator not found");
+      logError("External Secrets Operator is not installed");
+      logInfo("Install via ArgoCD: argocd/infrastructure/templates/external-secrets.yaml");
+      process.exit(1);
+    }
+
+    spinner.stop(`✓ External Secrets Operator installed (${esoStatus.version || "unknown version"})`);
+  }
+
+  // Step 2: Check if config already exists in values file
+  const existingConfig = readClusterSecretStoreFromValues();
+
+  if (existingConfig && existingConfig.projectId) {
+    logInfo("ClusterSecretStore already configured:");
+    logInfo(`  Provider: ${existingConfig.provider}`);
+    logInfo(`  Name: ${existingConfig.name}`);
+    logInfo(`  Project ID: ${existingConfig.projectId}`);
+
+    // Check if ClusterSecretStore exists in cluster
+    if (!values["dry-run"]) {
+      const spinner = clack.spinner();
+      spinner.start("Checking cluster status...");
+      const storeStatus = await checkClusterSecretStoreStatus(existingConfig.name, kubeconfigPath);
+      spinner.stop();
+
+      if (storeStatus.exists) {
+        if (storeStatus.ready) {
+          logSuccess(`✓ ClusterSecretStore "${existingConfig.name}" is ready`);
+        } else {
+          logWarning(`⚠ ClusterSecretStore "${existingConfig.name}" exists but not ready`);
+          if (storeStatus.errorMessage) {
+            logError(`  Error: ${storeStatus.errorMessage}`);
+          }
+        }
+      } else {
+        logWarning(`ClusterSecretStore "${existingConfig.name}" not found in cluster`);
+        logInfo("ArgoCD will create it from values/infrastructure/main.yaml");
+      }
+
+      // Check service account key secret
+      const keySecretExists = await checkServiceAccountKeySecret(kubeconfigPath);
+      if (keySecretExists) {
+        logSuccess("✓ Service account key secret exists (gcpsm-secret)");
+      } else {
+        logWarning("⚠ Service account key secret not found (gcpsm-secret)");
+        logInfo("Create it manually: kubectl create secret generic gcpsm-secret ...");
+      }
+    }
+
+    outro("⚙️  Setup already complete");
+    return;
+  }
+
+  // Step 3: Get GCP project ID (always prompt unless CLI flag provided)
+  let projectId = values.project as string;
+
+  if (!projectId) {
+    // List available projects and let user select
+    const availableProjects = await listGCPProjects();
+    
+    if (availableProjects.length > 0) {
+      // Use interactive selection
+      projectId = await clack.select({
+        message: "Select GCP Project:",
+        options: availableProjects.map(p => ({ value: p, label: p })),
+      }) as string;
+    } else {
+      // Fallback to text input if listing fails
+      projectId = await promptText({
+        message: "GCP Project ID:",
+        placeholder: "my-project-123",
+        validate: (value) => (value ? undefined : "Project ID is required"),
+      });
+    }
+  }
+
+  logInfo(`Using GCP project: ${projectId}`);
+
+  if (values["dry-run"]) {
+    logInfo("[DRY RUN] Skipping service account and secret creation");
+    outro("⚙️  Dry run complete");
+    return;
+  }
+
+  // Step 4: Check gcloud CLI installation and authentication
+  const spinner = clack.spinner();
+  spinner.start("Checking gcloud CLI...");
+
+  const gcloudStatus = await checkGCloudReady();
+
+  if (!gcloudStatus.installed) {
+    spinner.stop("gcloud CLI not found");
+    logError("gcloud CLI is not installed");
+    logInfo("Install from: https://cloud.google.com/sdk/docs/install");
+    process.exit(1);
+  }
+
+  if (!gcloudStatus.authenticated) {
+    spinner.stop("Not authenticated to GCP");
+    logError("Not authenticated to gcloud");
+    logInfo("Run: gcloud auth login");
+    process.exit(1);
+  }
+
+  spinner.stop(`✓ gcloud CLI ready (${gcloudStatus.activeAccount})`);
+
+  // Step 5: Create GCP service account and key automatically
+  log("");
+  log("🔧 Creating GCP service account...");
+
+  let keyFilePath: string;
+
+  try {
+    keyFilePath = await createGCPServiceAccountAndKey(projectId, "./key.json");
+    logSuccess(`✓ Service account created: external-secrets@${projectId}.iam.gserviceaccount.com`);
+    logSuccess(`✓ Service account key created: ${keyFilePath}`);
+  } catch (error: any) {
+    logError(error.message);
+    process.exit(1);
+  }
+
+  // Step 6: Create Kubernetes secret (gcpsm-secret)
+  log("");
+  const secretSpinner = clack.spinner();
+  secretSpinner.start("Creating Kubernetes secret (gcpsm-secret)...");
+
+  try {
+    const { execSync } = require("child_process");
+    const env = kubeconfigPath 
+      ? { ...process.env, KUBECONFIG: kubeconfigPath } 
+      : process.env;
+
+    execSync(
+      `kubectl create secret generic gcpsm-secret ` +
+      `--from-file=secret-access-credentials=${keyFilePath} ` +
+      `--namespace=external-secrets-system ` +
+      `--dry-run=client -o yaml | kubectl apply -f -`,
+      { encoding: "utf-8", env }
+    );
+
+    secretSpinner.stop("✓ Service account key secret created");
+  } catch (error: any) {
+    secretSpinner.stop("Failed to create secret");
+    logError(error.message);
+    process.exit(1);
+  }
+
+  // Step 7: Save config to values file (ONLY after secret is created)
+  secretSpinner.start("Saving configuration to values/infrastructure/main.yaml...");
+
+  const newConfig: ClusterSecretStoreConfig = {
+    name: "gcp-secretstore",
+    provider: "gcp",
+    projectId,
+  };
+
+  try {
+    saveClusterSecretStoreConfig(newConfig);
+    secretSpinner.stop("✓ Configuration saved");
+  } catch (error: any) {
+    secretSpinner.stop("Failed to save configuration");
+    logError(error.message);
+    process.exit(1);
+  }
+
+  // Step 8: Show ArgoCD sync instructions
+  log("");
+  logSuccess("✓ ClusterSecretStore setup complete!");
+  log("");
+  log("📋 Next steps:");
+  log("1. Sync ArgoCD to create ClusterSecretStore:");
+  log("   argocd app sync infrastructure");
+  log("");
+  log("2. Verify ClusterSecretStore is ready:");
+  log("   kubectl get clustersecretstore gcp-secretstore");
+  log("");
+  log("3. Now you can manage secrets:");
+  log("   bun scripts/secrets.ts check");
+  log("   bun scripts/secrets.ts generate");
+
+  outro("⚙️  Setup complete");
+}
+
+/**
+ * Generate command - create missing secrets
+ */
+async function generateCommand() {
+  intro("🔐 Generating secrets");
+
+  // Check if ClusterSecretStore is configured (blocking requirement)
+  const config = readClusterSecretStoreFromValues();
+  if (!config || !config.projectId) {
+    logError("ClusterSecretStore not configured in values/infrastructure/main.yaml");
+    logInfo("Run setup first: bun scripts/secrets.ts setup");
+    process.exit(1);
+  }
+
+  const kubeconfigPath = values.kubeconfig as string | undefined;
+
+  // Get project ID with new priority order
+  let projectId = (values.project as string) || await detectGCPProjectId(kubeconfigPath);
+
+  if (!projectId) {
+    projectId = await promptText({
+      message: "GCP Project ID:",
+      placeholder: "monobase-prod",
+      validate: (value) => (value ? undefined : "Project ID is required"),
+    });
+  }
+
+  logInfo(`Using GCP project: ${projectId}`);
+
+  // Scan values files
+  const spinner = clack.spinner();
+  spinner.start("Scanning values files...");
+
+  const results = await scanValuesFiles({
+    deployment: values.deployment as string | undefined,
+  });
+
+  spinner.stop(`Found ${results.totalSecrets} secrets`);
+
+  if (results.totalSecrets === 0) {
+    logWarning("No secrets found");
+    outro("🔐 Generate complete");
+    return;
+  }
+
+  // Initialize provider
+  const provider = new SecretProvider(projectId);
+
+  if (!values["dry-run"]) {
+    spinner.start("Initializing GCP provider...");
+    try {
+      await provider.initialize();
+      spinner.stop("GCP provider ready");
+    } catch (error: any) {
+      spinner.stop("Failed to initialize GCP provider");
+      logError(error.message);
+      process.exit(1);
+    }
+  }
+
+  // Check which secrets exist
+  const remoteKeys = results.secrets.map((s) => s.remoteKey);
+  spinner.start(`Checking ${remoteKeys.length} secrets...`);
+
+  const statuses = values["dry-run"]
+    ? new Map()
+    : await provider.checkSecrets(remoteKeys);
+
+  spinner.stop("Check complete");
+
+  // Find missing secrets
+  const missing = results.secrets.filter((s) => {
+    const status = statuses.get(s.remoteKey);
+    return !status?.exists;
+  });
+
+  if (missing.length === 0) {
+    logSuccess("All secrets already exist in GCP");
+    outro("🔐 Generate complete");
+    return;
+  }
+
+  logInfo(`Found ${missing.length} missing secrets`);
+
+  // Separate into auto-generate vs manual input
+  const autoGenerate = missing.filter((s) => s.generator?.generate);
+  const manualInput = missing.filter((s) => !s.generator?.generate);
+
+  if (autoGenerate.length > 0) {
+    log(`\n🤖 Auto-generate (${autoGenerate.length}):`);
+    for (const secret of autoGenerate) {
+      log(`   ${secret.deployment}/${secret.chart}: ${secret.remoteKey}`);
+      if (secret.generator) {
+        log(`     ${formatSecretDescription(secret.generator)}`);
+      }
+    }
+  }
+
+  if (manualInput.length > 0) {
+    log(`\n✍️  Manual input required (${manualInput.length}):`);
+    for (const secret of manualInput) {
+      log(`   ${secret.deployment}/${secret.chart}: ${secret.remoteKey}`);
+    }
+  }
+
+  // Confirm before proceeding
+  if (!values.yes && !values["dry-run"]) {
     const confirmed = await promptConfirm({
-      message: `Create ${secretsToCreate.length} secrets in GCP?`,
+      message: `Create ${missing.length} secrets in GCP?`,
       initialValue: true,
     });
 
     if (!confirmed) {
       outro("❌ Cancelled");
-      process.exit(0);
+      return;
     }
-
-    // Create secrets
-    spinner.start(`Creating ${secretsToCreate.length} secrets`);
-    for (const { remoteKey, value } of secretsToCreate) {
-      await provider.createSecret(remoteKey, value);
-    }
-    spinner.stop(`Created ${secretsToCreate.length} secrets`);
   }
 
-  // Generate manifests
-  logInfo("\n📝 Generating manifests");
-  await generateCommand();
+  if (values["dry-run"]) {
+    logInfo("[DRY RUN] Would create the secrets listed above");
+    outro("🔐 Dry run complete");
+    return;
+  }
 
-  outro("✅ Setup complete");
+  // Generate secrets
+  const secretValues = new Map<string, string>();
+
+  // Auto-generate
+  for (const secret of autoGenerate) {
+    if (secret.generator) {
+      const value = generateSecretValue(secret.generator);
+      secretValues.set(secret.remoteKey, value);
+    }
+  }
+
+  // Prompt for manual input
+  for (const secret of manualInput) {
+    const value = await promptPassword({
+      message: `Enter value for ${secret.chart}/${secret.remoteKey}:`,
+    });
+    secretValues.set(secret.remoteKey, value);
+  }
+
+  // Create secrets in GCP
+  spinner.start(`Creating ${secretValues.size} secrets...`);
+
+  let created = 0;
+  for (const [remoteKey, value] of secretValues.entries()) {
+    try {
+      await provider.createSecret(remoteKey, value);
+      created++;
+    } catch (error: any) {
+      logError(`Failed to create ${remoteKey}: ${error.message}`);
+    }
+  }
+
+  spinner.stop(`Created ${created}/${secretValues.size} secrets`);
+
+  outro("🔐 Generate complete");
 }
 
 /**
- * Validate cluster command - check ExternalSecrets sync status
+ * Validate command - verify ExternalSecret sync
  */
-async function validateClusterCommand() {
-  intro("☸️  Validating cluster state");
+async function validateCommand() {
+  intro("✅ Validating ExternalSecret sync");
 
-  const kubeconfigPath = await getKubeconfigPathWithDiscovery();
-  
-  if (kubeconfigPath) {
-    displayCurrentContext(kubeconfigPath);
+  const kubeconfigPath = values.kubeconfig as string | undefined;
+
+  // Scan values files
+  const spinner = clack.spinner();
+  spinner.start("Scanning values files...");
+
+  const results = await scanValuesFiles({
+    deployment: values.deployment as string | undefined,
+  });
+
+  spinner.stop(`Found ${results.totalSecrets} secrets`);
+
+  if (results.totalSecrets === 0) {
+    logWarning("No secrets found");
+    outro("✅ Validation complete");
+    return;
   }
-  
-  const { success, results } = await validateCluster(kubeconfigPath);
 
-  if (success) {
-    outro("✅ All ExternalSecrets are synced");
+  // Validate ExternalSecrets
+  spinner.start("Checking ExternalSecret sync status...");
+
+  const validation = await validateExternalSecrets(results.secrets, kubeconfigPath);
+
+  spinner.stop("Validation complete");
+
+  // Display results
+  for (const deployment of validation.deployments) {
+    log(`\n📦 ${deployment.deployment} (${deployment.namespace}):`);
+
+    for (const externalSecret of deployment.externalSecrets) {
+      if (externalSecret.ready) {
+        logSuccess(`   ✓ ${externalSecret.name} (synced)`);
+      } else if (externalSecret.exists) {
+        logWarning(`   ⚠ ${externalSecret.name} (not synced)`);
+        if (externalSecret.errorMessage) {
+          logError(`     ${externalSecret.errorMessage}`);
+        }
+      } else {
+        logError(`   ✗ ${externalSecret.name} (not found)`);
+      }
+    }
+  }
+
+  log("");
+  logInfo(
+    `Total: ${validation.readyCount}/${validation.totalExternalSecrets} ready, ` +
+      `${validation.errorCount} errors`
+  );
+
+  if (validation.success) {
+    outro("✅ All ExternalSecrets synced successfully");
   } else {
-    outro("❌ Some ExternalSecrets are not synced");
+    outro("❌ Some ExternalSecrets failed to sync");
     process.exit(1);
   }
 }
 
-// Run command
+/**
+ * Sync command - full workflow
+ */
+async function syncCommand() {
+  intro("🔄 Full secrets sync workflow");
+
+  logInfo("Step 1: Discover secrets");
+  await discoverCommand();
+
+  log("");
+  logInfo("Step 2: Check GCP Secret Manager");
+  await checkCommand();
+
+  log("");
+  logInfo("Step 3: Generate missing secrets");
+  await generateCommand();
+
+  if (!values["dry-run"]) {
+    log("");
+    logInfo("Step 4: Validate ExternalSecret sync");
+    await validateCommand();
+  }
+
+  outro("🔄 Sync workflow complete");
+}
+
+// Main execution
 async function main() {
   try {
     switch (command) {
-      case "validate":
-        await validateCommand();
+      case "discover":
+        await discoverCommand();
         break;
-      case "validate-cluster":
-        await validateClusterCommand();
+      case "check":
+        await checkCommand();
+        break;
+      case "setup":
+        await setupCommand();
         break;
       case "generate":
         await generateCommand();
         break;
-      case "setup":
-        await setupCommand();
+      case "validate":
+        await validateCommand();
+        break;
+      case "sync":
+        await syncCommand();
         break;
       default:
         logError(`Unknown command: ${command}`);

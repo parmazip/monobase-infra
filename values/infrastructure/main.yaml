@@ -55,7 +55,7 @@ envoyProxyConfig:
 # Gateway Resources - Shared Gateway configuration
 gateway:
   # Base domain for gateway (override per deployment)
-  domain: parmazip.ca
+  domain: parmazip.com
 
   # Gateway configuration
   gateway:
@@ -67,12 +67,12 @@ gateway:
         enabled: true
         port: 443
         protocol: HTTPS
-        # hostname automatically derived from gateway.domain as *.parmazip.ca
+        # hostname automatically derived from gateway.domain as *.parmazip.com
       http:
         enabled: true
         port: 80
         protocol: HTTP
-        # hostname automatically derived from gateway.domain as *.parmazip.ca
+        # hostname automatically derived from gateway.domain as *.parmazip.com
 
   # TLS/Certificate configuration
   tls:
@@ -123,7 +123,7 @@ externalSecrets:
     - name: gcp-secretstore
       provider: gcp
       gcp:
-        projectId: "mc-v4-prod"
+        projectId: "mc-v4-prod"  # GCP Secret Manager project
         auth:
           # Using Service Account Key authentication (works on any K8s cluster)
           serviceAccountKey:
@@ -141,27 +141,8 @@ externalSecrets:
               name: external-secrets
               namespace: external-secrets-system
 
-  # Legacy provider configurations (kept for backward compatibility)
-  # AWS Secrets Manager configuration
-  aws:
-    region: us-east-1
-    roleArn: ""
-    serviceAccountName: external-secrets-sa
-
-  # Azure Key Vault configuration
-  azure:
-    vaultUrl: ""
-    identityId: ""
-    tenantId: ""
-
-  # GCP Secret Manager configuration
-  gcp:
-    projectId: ""
-    region: us-central1
-    clusterName: ""
-    serviceAccountEmail: ""
-
 # External DNS - Automatic DNS record management from HTTPRoutes
+# Note: externalSecrets config is in values/infrastructure/external-dns.yaml (single source of truth)
 externalDNS:
   enabled: true  # Automatic DNS via Cloudflare
 

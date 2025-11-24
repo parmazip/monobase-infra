@@ -14,13 +14,13 @@ The easiest way to get started is using our setup script:
 
 ```bash
 # Run the secrets setup script
-bash scripts/secrets.sh
+bun scripts/secrets.ts sync
 
 # Follow the interactive prompts to:
-# 1. Select your cloud provider (GCP recommended)
-# 2. Automatically configure KMS and Workload Identity
-# 3. Create secrets interactively or from YAML files
-# 4. Generate ExternalSecret manifests for GitOps
+# 1. Auto-discover secrets from values files
+# 2. Check which secrets exist in GCP Secret Manager
+# 3. Auto-generate or prompt for missing secrets
+# 4. Validate ExternalSecret sync status
 ```
 
 ## Supported Providers
@@ -71,17 +71,15 @@ gcloud config set project YOUR_PROJECT_ID
 ### Option 1: Automated Setup (Recommended)
 
 ```bash
-# Run the GCP secrets setup script
-bash scripts/secrets-gcp.sh
+# Run the secrets setup script
+bun scripts/secrets.ts setup
 
 # The script will:
-# 1. Auto-detect your GCP project
-# 2. Enable required APIs (Secret Manager, IAM)
-# 3. Prompt for namespace and secrets
-# 4. Create secrets in GCP Secret Manager
-# 5. Configure Workload Identity
-# 6. Generate ClusterSecretStore YAML
-# 7. Create ExternalSecret manifests for your secrets
+# 1. Auto-detect your GCP project from values files
+# 2. Check External Secrets Operator installation
+# 3. Verify ClusterSecretStore configuration
+# 4. Display setup instructions for service account
+# 5. Guide you through GCP Secret Manager setup
 ```
 
 ### Option 2: Manual Setup
@@ -213,9 +211,9 @@ kubectl get secret cloudflare-api-token-secret -n cert-manager
 **Status:** Not yet implemented
 
 To add AWS support:
-1. Implement `scripts/secrets-aws.sh` (use `scripts/secrets-gcp.sh` as template)
-2. Create `infrastructure/external-secrets/aws-secretstore.yaml.template`
-3. Update deployment values to use `provider: aws`
+1. Extend `scripts/secrets/provider.ts` with AWS Secrets Manager client
+2. Add AWS configuration to `values/infrastructure/main.yaml` (externalSecrets.stores)
+3. Update deployment values to use AWS remote keys
 
 For now, use GCP Secret Manager as the default provider.
 
@@ -224,9 +222,9 @@ For now, use GCP Secret Manager as the default provider.
 **Status:** Not yet implemented
 
 To add Azure support:
-1. Implement `scripts/secrets-azure.sh` (use `scripts/secrets-gcp.sh` as template)
-2. Create `infrastructure/external-secrets/azure-secretstore.yaml.template`
-3. Update deployment values to use `provider: azure`
+1. Extend `scripts/secrets/provider.ts` with Azure Key Vault client
+2. Add Azure configuration to `values/infrastructure/main.yaml` (externalSecrets.stores)
+3. Update deployment values to use Azure remote keys
 
 For now, use GCP Secret Manager as the default provider.
 

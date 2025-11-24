@@ -7,11 +7,16 @@ enabled: true
 # External Secrets configuration
 # Creates ExternalSecret to sync MinIO credentials from GCP Secret Manager
 externalSecrets:
-  enabled: true
+  enabled: false
   secretStore: "gcp-secretstore"
   refreshInterval: "1h"
-  rootUserKey: ""  # Must be provided in deployment values (e.g., parmazip-staging-minio-root-user)
-  rootPasswordKey: ""  # Must be provided in deployment values (e.g., parmazip-staging-minio-root-password)
+  secrets: []  # Must be provided in deployment values
+    # Example:
+    # - remoteKey: monobase-staging-minio-root-password
+    #   generator:
+    #     generate: true
+    #     type: password
+    #     description: MinIO root password
 
 # Bitnami MinIO subchart values
 # Full configuration: https://github.com/bitnami/charts/tree/main/bitnami/minio

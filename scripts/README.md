@@ -96,12 +96,12 @@ bun scripts/secrets.ts validate-cluster
 bun scripts/secrets.ts generate --dry-run
 
 # Using environment variables
-export GCP_PROJECT_ID=mc-v4-prod
+export GCP_PROJECT_ID=monobase-prod
 export KUBECONFIG=/path/to/kubeconfig
 bun scripts/secrets.ts setup
 
 # Via mise tasks
-mise run secrets setup --project mc-v4-prod
+mise run secrets setup --project monobase-prod
 mise run secrets:generate
 mise run secrets:validate
 ```

@@ -3,6 +3,18 @@
 
 enabled: true
 
+# External Secrets configuration
+# Creates ExternalSecret to sync DNS provider API token from secret manager
+externalSecrets:
+  enabled: true
+  secretStore: "gcp-secretstore"
+  refreshInterval: "1h"
+  remoteKey: "parmazip-infra-cloudflare-api-token"
+  generator:
+    generate: false
+    type: token
+    description: "Cloudflare API token for DNS management"
+
 # External DNS image configuration
 image:
   registry: registry.k8s.io
@@ -13,14 +25,14 @@ image:
 # Multiple External DNS instances
 # Each instance can manage different DNS provider and domains
 instances:
-  # Primary instance: Cloudflare for parmazip.ca (all environments)
+  # Primary instance: Cloudflare for parmazip.com (all environments)
   - name: primary
     enabled: true
     provider: cloudflare
 
-    # Manage all parmazip.ca subdomains across all namespaces
+    # Manage all parmazip.com subdomains across all namespaces
     domainFilters:
-      - parmazip.ca
+      - parmazip.com
 
     # Cloudflare-specific configuration
     cloudflare:

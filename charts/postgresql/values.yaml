@@ -10,7 +10,7 @@ externalSecrets:
   enabled: true
   secretStore: "gcp-secretstore"
   refreshInterval: "1h"
-  remoteKey: ""  # Must be provided in deployment values (e.g., parmazip-staging-postgresql-password)
+  remoteKey: ""  # Must be provided in deployment values (e.g., monobase-staging-postgresql-password)
 
 # Bitnami PostgreSQL subchart values
 # Full configuration: https://github.com/bitnami/charts/tree/main/bitnami/postgresql

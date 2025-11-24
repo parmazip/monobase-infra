@@ -2,7 +2,7 @@
 # Staging environment on DigitalOcean Kubernetes (DOKS)
 
 global:
-  domain: stg.parmazip.ca
+  domain: stg.parmazip.com
   namespace: parmazip-staging
   environment: staging
 
@@ -89,7 +89,7 @@ account:
     hostname: ""
 
   config:
-    API_URL: "https://api.stg.parmazip.ca"
+    API_URL: "https://api.stg.parmazip.com"
 
   podDisruptionBudget:
     enabled: false
@@ -117,7 +117,7 @@ patient:
     hostname: ""
 
   config:
-    API_URL: "https://api.stg.parmazip.ca"
+    API_URL: "https://api.stg.parmazip.com"
 
   podDisruptionBudget:
     enabled: false
@@ -145,7 +145,7 @@ provider:
     hostname: ""
 
   config:
-    API_URL: "https://api.stg.parmazip.ca"
+    API_URL: "https://api.stg.parmazip.com"
 
   podDisruptionBudget:
     enabled: false
@@ -173,7 +173,7 @@ website:
     hostname: ""
 
   config:
-    API_URL: "https://api.stg.parmazip.ca"
+    API_URL: "https://api.stg.parmazip.com"
 
   podDisruptionBudget:
     enabled: false
@@ -186,6 +186,10 @@ postgresql:
   externalSecrets:
     enabled: true
     remoteKey: parmazip-staging-postgresql-password
+    generator:
+      generate: true
+      type: password
+      description: PostgreSQL admin password
 
   # Bitnami PostgreSQL subchart configuration
   postgresql:
@@ -251,8 +255,12 @@ minio:
   # External Secrets configuration
   externalSecrets:
     enabled: true
-    rootUserKey: parmazip-staging-minio-root-user
-    rootPasswordKey: parmazip-staging-minio-root-password
+    secrets:
+      - remoteKey: parmazip-staging-minio-root-password
+        generator:
+          generate: true
+          type: password
+          description: MinIO root password
 
   # Bitnami MinIO subchart configuration
   minio:
