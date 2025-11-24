@@ -15,13 +15,15 @@ spec:
   project: default
 
   source:
-    repoURL: {{ .Values.global.gitopsRepo | default "https://github.com/parmazip/monobase-infra.git" }}
-    targetRevision: {{ .Values.global.gitopsRevision | default "HEAD" }}
+    repoURL: {{ .Values.argocd.repoURL }}
+    targetRevision: {{ .Values.argocd.targetRevision | default "HEAD" }}
     path: charts/postgresql
     helm:
       releaseName: postgresql
-      valueFiles:
-        - ../../values/deployments/{{ .Values.global.namespace }}.yaml
+      # Pass postgresql section values directly to chart
+      # The deployment values file has postgresql config nested under 'postgresql:' key
+      valuesObject:
+        {{- .Values.postgresql | toYaml | nindent 8 }}
 
   destination:
     server: https://kubernetes.default.svc

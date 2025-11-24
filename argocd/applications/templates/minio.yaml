@@ -27,13 +27,15 @@ spec:
     - .data
 
   source:
-    repoURL: {{ .Values.global.gitopsRepo | default "https://github.com/parmazip/monobase-infra.git" }}
-    targetRevision: {{ .Values.global.gitopsRevision | default "HEAD" }}
+    repoURL: {{ .Values.argocd.repoURL }}
+    targetRevision: {{ .Values.argocd.targetRevision | default "HEAD" }}
     path: charts/minio
     helm:
       releaseName: minio
-      valueFiles:
-        - ../../values/deployments/{{ .Values.global.namespace }}.yaml
+      # Pass minio section values directly to chart
+      # The deployment values file has minio config nested under 'minio:' key
+      valuesObject:
+        {{- .Values.minio | toYaml | nindent 8 }}
 
   destination:
     server: https://kubernetes.default.svc
