@@ -33,7 +33,7 @@ spec:
     helm:
       releaseName: minio
       valueFiles:
-        - ../../values/deployments/{{ .Values.global.deploymentName }}.yaml
+        - ../../values/deployments/{{ .Values.global.namespace }}.yaml
 
   destination:
     server: https://kubernetes.default.svc

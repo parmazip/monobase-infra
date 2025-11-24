@@ -21,7 +21,7 @@ spec:
     helm:
       releaseName: postgresql
       valueFiles:
-        - ../../values/deployments/{{ .Values.global.deploymentName }}.yaml
+        - ../../values/deployments/{{ .Values.global.namespace }}.yaml
 
   destination:
     server: https://kubernetes.default.svc
