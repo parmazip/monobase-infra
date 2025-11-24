@@ -16,7 +16,7 @@ maintainers:
 
 dependencies:
   - name: postgresql
-    version: 16.4.0-debian-12-r13
+    version: 16.7.27
     repository: oci://registry-1.docker.io/bitnamicharts
     condition: postgresql.enabled
 
