@@ -4,7 +4,7 @@
 # Global configuration
 global:
   # Target namespace where security policies will be deployed
-  # This should be overridden per environment (e.g., mycure-staging, mycure-prod)
+  # This should be overridden per environment (e.g., acme-staging, acme-prod)
   namespace: default
 
 # NetworkPolicy configuration
