@@ -97,8 +97,6 @@ gateway:
         - patient
         - provider
         - www
-        - web
-        - sync
         - storage
         # Staging subdomains
         - account.stg
@@ -108,8 +106,6 @@ gateway:
         - api.stg
         - mail.stg
         - storage.stg
-        - web.stg
-        - sync.stg
 
   # HTTP to HTTPS redirect
   httpRedirect:
