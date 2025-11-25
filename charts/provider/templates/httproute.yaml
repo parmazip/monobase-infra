@@ -12,12 +12,12 @@ spec:
       namespace: {{ include "provider.gateway.namespace" . }}
       sectionName: https  # Only attach to HTTPS listener
   hostnames:
+    - {{ include "provider.gateway.hostname" . }}
   {{- if .Values.gateway.tls.enabled }}
   tls:
     certificateRefs:
       - name: {{ .Values.gateway.tls.secretName }}
   {{- end }}
-    - {{ include "provider.gateway.hostname" . }}
   rules:
     - matches:
         - path:
