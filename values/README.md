@@ -7,9 +7,7 @@ This directory contains all actual configuration values used to deploy infrastru
 ```
 values/
 ├── infrastructure/          # Infrastructure configuration
-│   ├── main.yaml           # Main infrastructure config (cert-manager, gateway, etc.)
-│   ├── external-dns.yaml   # External DNS configuration
-│   └── argocd.yaml         # ArgoCD Helm values
+│   └── main.yaml           # Main infrastructure config (ArgoCD, cert-manager, external-dns, gateway, etc.)
 └── deployments/            # Application deployment configurations
     ├── acme-staging.yaml     # Acme staging environment
     └── acme-production.yaml  # Acme production environment
@@ -65,7 +63,7 @@ git push
 
 ### Naming Convention
 
-- **Infrastructure**: `{component}.yaml` (e.g., `main.yaml`, `argocd.yaml`)
+- **Infrastructure**: `main.yaml` (single consolidated configuration file)
 - **Deployments**: `{client}-{environment}.yaml` (e.g., `acme-staging.yaml`)
 
 ### Secrets

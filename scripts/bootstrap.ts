@@ -182,7 +182,7 @@ class Bootstrap {
   async checkIfRepoIsPublic(): Promise<boolean> {
     try {
       // Read ArgoCD values file to get the repository URL
-      const valuesPath = 'values/infrastructure/argocd.yaml';
+      const valuesPath = 'values/infrastructure/main.yaml';
       const valuesContent = await Bun.file(valuesPath).text();
 
       // Extract repository URL from the repositories config
@@ -474,7 +474,7 @@ spec:
       await $`helm upgrade --install argocd argo/argo-cd \
         --namespace argocd \
         --version 7.7.12 \
-        --values values/infrastructure/argocd.yaml \
+        --values values/infrastructure/main.yaml \
         --wait \
         --timeout 10m`.quiet();
       
