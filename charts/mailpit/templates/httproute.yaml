@@ -12,6 +12,11 @@ spec:
       namespace: {{ include "mailpit.gateway.namespace" . }}
       sectionName: https  # Only attach to HTTPS listener
   hostnames:
+  {{- if .Values.gateway.tls.enabled }}
+  tls:
+    certificateRefs:
+      - name: {{ .Values.gateway.tls.secretName }}
+  {{- end }}
     - {{ include "mailpit.gateway.hostname" . }}
   rules:
     - matches:

@@ -37,6 +37,9 @@ api:
 
   gateway:
     hostname: ""
+    tls:
+      certManager:
+        enabled: true  # Enable automatic TLS certificate provisioning
 
   livenessProbe:
     enabled: true
@@ -87,6 +90,9 @@ account:
 
   gateway:
     hostname: ""
+    tls:
+      certManager:
+        enabled: true  # Enable automatic TLS certificate provisioning
 
   config:
     API_URL: "https://api.stg.parmazip.com"
@@ -115,6 +121,9 @@ patient:
 
   gateway:
     hostname: ""
+    tls:
+      certManager:
+        enabled: true  # Enable automatic TLS certificate provisioning
 
   config:
     API_URL: "https://api.stg.parmazip.com"
@@ -143,6 +152,9 @@ provider:
 
   gateway:
     hostname: ""
+    tls:
+      certManager:
+        enabled: true  # Enable automatic TLS certificate provisioning
 
   config:
     API_URL: "https://api.stg.parmazip.com"
@@ -171,6 +183,9 @@ website:
 
   gateway:
     hostname: ""
+    tls:
+      certManager:
+        enabled: true  # Enable automatic TLS certificate provisioning
 
   config:
     API_URL: "https://api.stg.parmazip.com"
@@ -319,6 +334,9 @@ minio:
     gateway:
       enabled: true
       hostname: ""
+      tls:
+        certManager:
+          enabled: true  # Enable automatic TLS certificate provisioning
       rateLimit:
         enabled: false
 
@@ -335,6 +353,9 @@ mailpit:
       memory: 64Mi
 
   gateway:
+    tls:
+      certManager:
+        enabled: true  # Enable automatic TLS certificate provisioning
     enabled: true
     hostname: ""
 

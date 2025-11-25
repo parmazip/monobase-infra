@@ -47,6 +47,12 @@ gateway:
   parentRefs:
     - name: shared-gateway
       namespace: gateway-system
+  tls:
+    enabled: true
+    secretName: "mailpit-tls"
+    certManager:
+      enabled: false  # Enable per deployment (staging/production)
+      clusterIssuer: letsencrypt-prod
   
   # Optional: Rate limiting configuration for Mailpit web UI
   # Mailpit is typically for internal/staging use, lighter limits than MinIO

@@ -85,27 +85,12 @@ gateway:
     enabled: true
     secretName: gateway-tls
     certManager:
-      enabled: true  # Enabled: DNS records exist, ready for certificate provisioning
+      enabled: false  # Disabled: Using per-app certificates instead of shared certificate
       clusterIssuer: letsencrypt-prod  # HTTP-01 challenge
       includeApex: true
       # Specific subdomains for HTTP-01 challenge
-      subdomains:
-        # Production subdomains
-        - grafana
-        - api
-        - account
-        - patient
-        - provider
-        - www
-        - storage
-        # Staging subdomains
-        - account.stg
-        - patient.stg
-        - provider.stg
-        - www.stg
-        - api.stg
-        - mail.stg
-        - storage.stg
+      # NOTE: Subdomains managed per-app, not here
+      subdomains: []
 
   # HTTP to HTTPS redirect
   httpRedirect:
@@ -291,6 +276,9 @@ monitoring:
     gateway:
       enabled: true
       hostname: ""  # Uses grafana.{domain}
+      tls:
+        certManager:
+          enabled: true  # Enable automatic TLS certificate provisioning
   
   # Alertmanager configuration
   alertmanager:

@@ -1,0 +1,17 @@
+{{- if and .Values.enabled .Values.minio.gateway.enabled .Values.minio.gateway.tls.certManager.enabled }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ .Values.minio.gateway.tls.secretName }}
+  namespace: {{ include "minio.namespace" . }}
+  labels:
+    {{- include "minio.labels" . | nindent 4 }}
+spec:
+  secretName: {{ .Values.minio.gateway.tls.secretName }}
+  dnsNames:
+    - {{ include "minio.gateway.hostname" . }}
+  issuerRef:
+    name: {{ .Values.minio.gateway.tls.certManager.clusterIssuer }}
+    kind: ClusterIssuer
+    group: cert-manager.io
+{{- end }}
