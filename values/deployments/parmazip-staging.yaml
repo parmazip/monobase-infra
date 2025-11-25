@@ -66,13 +66,30 @@ api:
   mailpit:
     enabled: true
 
+  # API Configuration
+  config:
+    # CORS
+    CORS_ORIGINS: "https://account.stg.parmazip.com,https://patient.stg.parmazip.com,https://provider.stg.parmazip.com,https://stg.parmazip.com"
+    # Auth
+    AUTH_BASE_URL: "https://api.stg.parmazip.com"
+    AUTH_SESSION_EXPIRES_IN: "604800"
+    # Email
+    EMAIL_PROVIDER: "smtp"
+    EMAIL_FROM_NAME: "Parmazip"
+    EMAIL_FROM_EMAIL: "noreply@parmazip.com"
+    # Rate Limiting
+    RATE_LIMIT_ENABLED: "true"
+    RATE_LIMIT_MAX: "100"
+    # WebRTC - Google STUN servers
+    WEBRTC_ICE_SERVERS: "stun:stun.l.google.com:19302,stun:stun1.l.google.com:19302"
+
 # ===== CORE: Monobase Account Frontend =====
 account:
   enabled: true
 
   image:
     repository: ghcr.io/monobaselabs/accountapp
-    tag: "1.0.2"
+    tag: "1.1.0"
     pullPolicy: IfNotPresent
 
   replicaCount: 1
@@ -90,6 +107,7 @@ account:
 
   config:
     API_URL: "https://api.stg.parmazip.com"
+    ONESIGNAL_APP_ID: ""  # Configure with your OneSignal App ID
 
   podDisruptionBudget:
     enabled: false
@@ -100,7 +118,7 @@ patient:
 
   image:
     repository: ghcr.io/monobaselabs/patientapp
-    tag: "1.0.0"
+    tag: "1.1.0"
     pullPolicy: IfNotPresent
 
   replicaCount: 1
@@ -118,6 +136,7 @@ patient:
 
   config:
     API_URL: "https://api.stg.parmazip.com"
+    ONESIGNAL_APP_ID: ""  # Configure with your OneSignal App ID
 
   podDisruptionBudget:
     enabled: false
@@ -128,7 +147,7 @@ provider:
 
   image:
     repository: ghcr.io/monobaselabs/providerapp
-    tag: "1.0.0"
+    tag: "1.1.0"
     pullPolicy: IfNotPresent
 
   replicaCount: 1
@@ -146,6 +165,7 @@ provider:
 
   config:
     API_URL: "https://api.stg.parmazip.com"
+    ONESIGNAL_APP_ID: ""  # Configure with your OneSignal App ID
 
   podDisruptionBudget:
     enabled: false
@@ -156,7 +176,7 @@ website:
 
   image:
     repository: ghcr.io/monobaselabs/websiteapp
-    tag: "1.0.0"
+    tag: "1.1.0"
     pullPolicy: IfNotPresent
 
   replicaCount: 1
@@ -174,6 +194,8 @@ website:
 
   config:
     API_URL: "https://api.stg.parmazip.com"
+    PATIENT_APP_URL: "https://patient.stg.parmazip.com"
+    PROVIDER_APP_URL: "https://provider.stg.parmazip.com"
 
   podDisruptionBudget:
     enabled: false
