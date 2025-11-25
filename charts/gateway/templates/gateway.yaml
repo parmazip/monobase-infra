@@ -39,15 +39,17 @@ spec:
         namespaces:
           from: All  # Critical for multi-tenant architecture
 
-      {{- if .Values.tls.enabled }}
       # TLS termination
+      # Note: When using per-app certificates, HTTPRoutes provide certificateRefs
+      # When using shared certificate, Gateway provides certificateRefs
       tls:
         mode: Terminate
+        {{- if .Values.tls.enabled }}
         certificateRefs:
           # Certificate managed by cert-manager
           - name: {{ include "gateway.tlsSecretName" . }}
             kind: Secret
-      {{- end }}
+        {{- end }}
     {{- end }}
 
     {{- if .Values.gateway.listeners.http.enabled }}
