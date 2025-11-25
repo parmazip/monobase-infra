@@ -250,7 +250,7 @@ valkey:
 
 # ===== STORAGE: MinIO Object Storage =====
 minio:
-  enabled: false
+  enabled: true
 
   # External Secrets configuration
   externalSecrets:
@@ -319,6 +319,9 @@ minio:
     gateway:
       enabled: true
       hostname: ""
+      tls:
+        certManager:
+          enabled: true  # Enable automatic TLS certificate provisioning
       rateLimit:
         enabled: false
 
