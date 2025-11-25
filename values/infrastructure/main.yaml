@@ -82,7 +82,7 @@ gateway:
 
   # TLS/Certificate configuration
   tls:
-    enabled: true
+    enabled: false  # Disabled: Using per-app certificates instead of shared Gateway certificate
     secretName: gateway-tls
     certManager:
       enabled: false  # Disabled: Using per-app certificates instead of shared certificate
