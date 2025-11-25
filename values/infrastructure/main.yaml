@@ -16,11 +16,17 @@ certManagerIssuers:
       email: "admin@example.com"
       server: production
       provider: http01
+      http01:
+        gatewayName: shared-gateway
+        gatewayNamespace: gateway-system
     
     - name: letsencrypt-staging
       email: "admin@example.com"
       server: staging
       provider: http01
+      http01:
+        gatewayName: shared-gateway
+        gatewayNamespace: gateway-system
 
 # Envoy Gateway - Gateway API implementation
 envoyGateway:
