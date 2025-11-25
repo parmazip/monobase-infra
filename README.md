@@ -34,8 +34,10 @@ monobase-infra/
 │       ├── azure-aks/       #    Azure AKS example
 │       ├── do-doks/         #    DigitalOcean DOKS example
 │       └── k3d/             #    Local k3d example
-├── cluster/                 # ← YOUR CLUSTER: Active cluster config (gitignored)
-│                            #    Copy from terraform/examples/
+├── values/                  # ← CONFIGURATION: All deployment values
+│   ├── cluster/             # ← YOUR CLUSTER: Terraform config (gitignored)
+│   ├── infrastructure/      #    Infrastructure component values
+│   └── deployments/         #    Application deployment values
 ├── charts/                  # ← CORE: Helm charts for applications
 │   ├── api/
 │   ├── api-worker/

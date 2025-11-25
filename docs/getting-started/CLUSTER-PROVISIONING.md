@@ -405,14 +405,14 @@ tofu output -raw kubeconfig > ~/.kube/clinic-prod
 
 ## Configuration Management
 
-### Understanding default-cluster/
+### Understanding values/cluster/
 
-The `clusters/default-cluster/` is a **reference configuration** (like `deployments/example.com/` for apps).
+The `values/cluster/` is your **active cluster configuration** generated from terraform/examples/.
 
 **Files:**
 
 ```
-default-cluster/
+values/cluster/
 ├── README.md                 # Customization guide
 ├── main.tf                   # Module usage
 ├── variables.tf              # All parameters
@@ -571,7 +571,7 @@ Then adjust provider-specific variables in `terraform.tfvars`.
 By default, state is stored locally:
 
 ```
-clusters/my-cluster/
+values/cluster/
 └── terraform.tfstate  # ⚠️ Do not commit to git
 ```
 

@@ -138,7 +138,7 @@ class ClusterProvisioner {
   // ===== Cluster Directory Validation =====
 
   async validateClusterDirectory() {
-    this.clusterDir = 'cluster';
+    this.clusterDir = 'values/cluster';
 
     if (!existsSync(this.clusterDir)) {
       console.log(chalk.yellow('\n✗ No cluster configuration found'));

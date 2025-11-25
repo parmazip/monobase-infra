@@ -12,21 +12,19 @@ This directory contains **reusable Terraform/OpenTofu modules** for cluster prov
 
 ## Quick Start
 
-**Note:** You typically work with cluster configs in `../clusters/`, not these modules directly.
+**Note:** You typically work with cluster configs in `../values/cluster/`, not these modules directly.
 
 ```bash
-# Cluster configs are at root level now:
-../clusters/
-├── example-aws-eks/     # AWS EKS reference
-├── example-do-doks/     # DigitalOcean DOKS reference
-├── example-k3d/         # Local k3d reference
-└── your-cluster/        # Your clusters (create from examples)
+# Copy example to values/cluster/:
+cp -r terraform/examples/gcp-gke values/cluster
+cd values/cluster
+vim terraform.tfvars
 
 # Use the provision script:
-./scripts/provision.sh --cluster your-cluster
+mise run provision
 
 # Or manually:
-cd ../clusters/your-cluster
+cd values/cluster
 terraform init
 terraform plan
 terraform apply

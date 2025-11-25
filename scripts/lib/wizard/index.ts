@@ -155,61 +155,61 @@ export class ClusterSetupWizard {
     const spinner = ora('Creating cluster configuration...').start();
 
     try {
-      // Check if cluster/ already exists
-      if (existsSync('cluster')) {
+      // Check if values/cluster/ already exists
+      if (existsSync('values/cluster')) {
         spinner.stop();
 
         const shouldOverwrite = await confirm({
-          message: 'cluster/ directory already exists. Overwrite?',
+          message: 'values/cluster/ directory already exists. Overwrite?',
           initialValue: false,
         });
 
         if (!shouldOverwrite || typeof shouldOverwrite === 'symbol') {
-          throw new Error('Setup cancelled - cluster/ directory exists');
+          throw new Error('Setup cancelled - values/cluster/ directory exists');
         }
 
-        // Backup existing cluster/
+        // Backup existing values/cluster/
         const backupName = `cluster.backup.${Date.now()}`;
-        await $`mv cluster ${backupName}`.quiet();
-        logInfo(`Existing cluster/ backed up to ${backupName}`);
+        await $`mv values/cluster ${backupName}`.quiet();
+        logInfo(`Existing values/cluster/ backed up to ${backupName}`);
 
         spinner.start('Creating cluster configuration...');
       }
 
       // Create cluster directory
-      await $`mkdir -p cluster`.quiet();
+      await $`mkdir -p values/cluster`.quiet();
 
       // Generate Terraform files based on provider
       switch (provider) {
         case 'gcp-gke':
-          await Bun.write('cluster/main.tf', generateGcpMainTf());
-          await Bun.write('cluster/variables.tf', generateGcpVariablesTf());
-          await Bun.write('cluster/outputs.tf', generateGcpOutputsTf());
+          await Bun.write('values/cluster/main.tf', generateGcpMainTf());
+          await Bun.write('values/cluster/variables.tf', generateGcpVariablesTf());
+          await Bun.write('values/cluster/outputs.tf', generateGcpOutputsTf());
           break;
         case 'aws-eks':
-          await Bun.write('cluster/main.tf', generateAwsMainTf());
-          await Bun.write('cluster/variables.tf', generateAwsVariablesTf());
-          await Bun.write('cluster/outputs.tf', generateAwsOutputsTf());
+          await Bun.write('values/cluster/main.tf', generateAwsMainTf());
+          await Bun.write('values/cluster/variables.tf', generateAwsVariablesTf());
+          await Bun.write('values/cluster/outputs.tf', generateAwsOutputsTf());
           break;
         case 'do-doks':
-          await Bun.write('cluster/main.tf', generateDoMainTf());
+          await Bun.write('values/cluster/main.tf', generateDoMainTf());
           break;
         case 'k3d':
-          await Bun.write('cluster/main.tf', generateK3dMainTf());
-          await Bun.write('cluster/variables.tf', generateK3dVariablesTf());
-          await Bun.write('cluster/outputs.tf', generateK3dOutputsTf());
+          await Bun.write('values/cluster/main.tf', generateK3dMainTf());
+          await Bun.write('values/cluster/variables.tf', generateK3dVariablesTf());
+          await Bun.write('values/cluster/outputs.tf', generateK3dOutputsTf());
           break;
       }
 
       // Generate terraform.tfvars
       const tfvarsContent = generateTfvars(provider, config);
-      await Bun.write('cluster/terraform.tfvars', tfvarsContent);
+      await Bun.write('values/cluster/terraform.tfvars', tfvarsContent);
 
       spinner.succeed('Cluster configuration created');
-      logSuccess('Files created in cluster/');
+      logSuccess('Files created in values/cluster/');
 
       // Show created files
-      const files = await $`ls -1 cluster`.text();
+      const files = await $`ls -1 values/cluster`.text();
       logInfo('Created files:\n' + files.trim().split('\n').map(f => `  - ${f}`).join('\n'));
     } catch (error) {
       spinner.fail('Failed to create configuration');
@@ -242,7 +242,7 @@ export class ClusterSetupWizard {
    */
   private getNextSteps(provider: Provider): string[] {
     const commonSteps = [
-      '1. Review generated terraform.tfvars in cluster/',
+      '1. Review generated terraform.tfvars in values/cluster/',
       '2. Ensure cloud provider credentials are configured',
       '3. Provision infrastructure',
     ];

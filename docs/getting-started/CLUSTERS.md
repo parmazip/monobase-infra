@@ -6,31 +6,31 @@ Complete guide for provisioning Kubernetes clusters using the example configurat
 
 | Example | Provider | Profile | Use Case | Quick Start |
 |---------|----------|---------|----------|-------------|
-| **aws-eks** | AWS EKS | Production | Multi-client production | `cp -r terraform/examples/aws-eks cluster` |
-| **azure-aks** | Azure AKS | Production | Azure-based production | `cp -r terraform/examples/azure-aks cluster` |
-| **gcp-gke** | GCP GKE | Production | GCP-based production | `cp -r terraform/examples/gcp-gke cluster` |
-| **do-doks** | DigitalOcean | Cost-effective | Budget-conscious prod | `cp -r terraform/examples/do-doks cluster` |
-| **k3d** | Local (Docker) | Development | Local testing/dev | `cp -r terraform/examples/k3d cluster` |
+| **aws-eks** | AWS EKS | Production | Multi-client production | `cp -r terraform/examples/aws-eks values/cluster` |
+| **azure-aks** | Azure AKS | Production | Azure-based production | `cp -r terraform/examples/azure-aks values/cluster` |
+| **gcp-gke** | GCP GKE | Production | GCP-based production | `cp -r terraform/examples/gcp-gke values/cluster` |
+| **do-doks** | DigitalOcean | Cost-effective | Budget-conscious prod | `cp -r terraform/examples/do-doks values/cluster` |
+| **k3d** | Local (Docker) | Development | Local testing/dev | `cp -r terraform/examples/k3d values/cluster` |
 
 ## Workflow
 
-This infrastructure uses a single-cluster pattern: you work with one active cluster configuration at a time in the `cluster/` directory.
+This infrastructure uses a single-cluster pattern: you work with one active cluster configuration at a time in the `values/cluster/` directory.
 
 ### 1. Choose and Copy Example
 
 ```bash
 # Choose based on your provider
-cp -r terraform/examples/aws-eks cluster
+cp -r terraform/examples/aws-eks values/cluster
 # OR
-cp -r terraform/examples/do-doks cluster
+cp -r terraform/examples/do-doks values/cluster
 # OR
-cp -r terraform/examples/k3d cluster
+cp -r terraform/examples/k3d values/cluster
 ```
 
 ### 2. Customize Configuration
 
 ```bash
-cd cluster
+cd values/cluster
 vim terraform.tfvars
 ```
 
