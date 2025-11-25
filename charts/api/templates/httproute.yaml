@@ -16,11 +16,6 @@ spec:
       {{- end }}
   hostnames:
     - {{ include "api.gateway.hostname" . }}
-  {{- if .Values.gateway.tls.enabled }}
-  tls:
-    certificateRefs:
-      - name: {{ .Values.gateway.tls.secretName }}
-  {{- end }}
   rules:
     - matches:
         - path:

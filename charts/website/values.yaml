@@ -55,12 +55,6 @@ gateway:
   parentRefs:
     - name: shared-gateway
       namespace: gateway-system
-  tls:
-    enabled: true
-    secretName: "website-tls"
-    certManager:
-      enabled: false  # Enable per deployment (staging/production)
-      clusterIssuer: letsencrypt-prod
 
 resources:
   requests:

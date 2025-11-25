@@ -13,11 +13,6 @@ spec:
       sectionName: https  # Only attach to HTTPS listener
   hostnames:
     - {{ include "minio.gateway.hostname" . }}
-  {{- if .Values.minio.gateway.tls.enabled }}
-  tls:
-    certificateRefs:
-      - name: {{ .Values.minio.gateway.tls.secretName }}
-  {{- end }}
   rules:
     - matches:
         - path:

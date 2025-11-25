@@ -40,15 +40,15 @@ spec:
           from: All  # Critical for multi-tenant architecture
 
       # TLS termination
-      # Note: When using per-app certificates, HTTPRoutes provide certificateRefs
-      # When using shared certificate, Gateway provides certificateRefs
+      # Gateway references all per-app certificates for SNI-based selection
       tls:
         mode: Terminate
-        {{- if .Values.tls.enabled }}
         certificateRefs:
-          # Certificate managed by cert-manager
-          - name: {{ include "gateway.tlsSecretName" . }}
+        {{- range .Values.certificates }}
+        {{- if .enabled }}
+          - name: {{ .name }}
             kind: Secret
+        {{- end }}
         {{- end }}
     {{- end }}
 

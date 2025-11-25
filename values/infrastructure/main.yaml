@@ -80,17 +80,40 @@ gateway:
         protocol: HTTP
         # hostname automatically derived from gateway.domain as *.parmazip.com
 
-  # TLS/Certificate configuration
-  tls:
-    enabled: true  # Required: Gateway API requires certificateRefs for HTTPS listeners
-    secretName: gateway-tls
-    certManager:
-      enabled: true  # Create wildcard certificate as default/fallback
-      clusterIssuer: letsencrypt-prod  # HTTP-01 challenge
-      includeApex: false  # Exclude apex - can't complete challenge
-      # Wildcard certificate for fallback (per-app certs override via HTTPRoute)
-      subdomains:
-        - "*"  # Wildcard: *.parmazip.com
+  # TLS/Certificate configuration - Per-app certificates
+  clusterIssuer: letsencrypt-prod
+
+  certificates:
+    # Staging environment
+    - name: staging-api-tls
+      hostname: api.stg.parmazip.com
+      enabled: true
+    - name: staging-account-tls
+      hostname: account.stg.parmazip.com
+      enabled: true
+    - name: staging-patient-tls
+      hostname: patient.stg.parmazip.com
+      enabled: true
+    - name: staging-provider-tls
+      hostname: provider.stg.parmazip.com
+      enabled: true
+    - name: staging-website-tls
+      hostname: www.stg.parmazip.com
+      enabled: true
+    - name: staging-minio-tls
+      hostname: storage.stg.parmazip.com
+      enabled: true
+    - name: staging-mailpit-tls
+      hostname: mailpit.stg.parmazip.com
+      enabled: true
+
+    # Production environment
+    - name: production-api-tls
+      hostname: api.parmazip.com
+      enabled: true
+    - name: production-storage-tls
+      hostname: storage.parmazip.com
+      enabled: true
 
   # HTTP to HTTPS redirect
   httpRedirect:

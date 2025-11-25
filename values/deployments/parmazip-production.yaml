@@ -319,9 +319,6 @@ minio:
     gateway:
       enabled: true
       hostname: ""
-      tls:
-        certManager:
-          enabled: true  # Enable automatic TLS certificate provisioning
       rateLimit:
         enabled: false
 
