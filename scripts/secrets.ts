@@ -87,7 +87,7 @@ Examples:
   bun scripts/secrets.ts check
 
   # Generate missing secrets for staging deployment
-  bun scripts/secrets.ts generate --deployment=parmazip-staging
+  bun scripts/secrets.ts generate --deployment=acme-staging
 
   # Validate ExternalSecret sync status
   bun scripts/secrets.ts validate
