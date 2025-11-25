@@ -82,15 +82,15 @@ gateway:
 
   # TLS/Certificate configuration
   tls:
-    enabled: false  # Disabled: Using per-app certificates instead of shared Gateway certificate
+    enabled: true  # Required: Gateway API requires certificateRefs for HTTPS listeners
     secretName: gateway-tls
     certManager:
-      enabled: false  # Disabled: Using per-app certificates instead of shared certificate
+      enabled: true  # Create wildcard certificate as default/fallback
       clusterIssuer: letsencrypt-prod  # HTTP-01 challenge
-      includeApex: true
-      # Specific subdomains for HTTP-01 challenge
-      # NOTE: Subdomains managed per-app, not here
-      subdomains: []
+      includeApex: false  # Exclude apex - can't complete challenge
+      # Wildcard certificate for fallback (per-app certs override via HTTPRoute)
+      subdomains:
+        - "*"  # Wildcard: *.parmazip.com
 
   # HTTP to HTTPS redirect
   httpRedirect:
