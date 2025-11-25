@@ -103,7 +103,7 @@ patient:
     tag: "1.0.0"
     pullPolicy: IfNotPresent
 
-  replicaCount: 2
+  replicaCount: 1
 
   resources:
     requests:
@@ -131,7 +131,7 @@ provider:
     tag: "1.0.0"
     pullPolicy: IfNotPresent
 
-  replicaCount: 2
+  replicaCount: 1
 
   resources:
     requests:
@@ -159,7 +159,7 @@ website:
     tag: "1.0.0"
     pullPolicy: IfNotPresent
 
-  replicaCount: 2
+  replicaCount: 1
 
   resources:
     requests:
