@@ -161,6 +161,17 @@ website:
 
   replicaCount: 1
 
+  service:
+    targetPort: 3000
+
+  livenessProbe:
+    httpGet:
+      port: 3000
+
+  readinessProbe:
+    httpGet:
+      port: 3000
+
   resources:
     requests:
       cpu: 50m
