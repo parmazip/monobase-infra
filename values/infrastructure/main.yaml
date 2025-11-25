@@ -13,7 +13,7 @@ certManagerIssuers:
   issuers:
     # HTTP-01 challenge type (no DNS provider needed)
     - name: letsencrypt-prod
-      email: "admin@example.com"
+      email: "admin@parmazip.com"
       server: production
       provider: http01
       http01:
@@ -21,7 +21,7 @@ certManagerIssuers:
         gatewayNamespace: gateway-system
     
     - name: letsencrypt-staging
-      email: "admin@example.com"
+      email: "admin@parmazip.com"
       server: staging
       provider: http01
       http01:
