@@ -42,10 +42,6 @@ monobase-infra/
 │   ├── api/
 │   ├── api-worker/
 │   └── account/
-├── deployments/             # ← CORE: Client/environment deployments
-│   ├── example-prod/        #    Production reference example
-│   ├── example-staging/     #    Staging reference example
-│   └── example-k3d/         #    Local k3d development example
 ├── infrastructure/          # ← CORE: K8s infrastructure components
 │   ├── envoy-gateway/
 │   ├── argocd/
@@ -131,27 +127,26 @@ cd monobase-infra
 **That's it for setup!** The bootstrap script:
 - ✅ Installs ArgoCD (if not present)
 - ✅ Deploys ApplicationSet for auto-discovery
-- ✅ ArgoCD now watches deployments/ directory
+- ✅ ArgoCD now watches values/deployments/ directory
 - ✅ Outputs ArgoCD UI access info
 
 ### Add Your First Client/Environment
 
 ```bash
 # 3. Create client configuration from example
-cp -r deployments/example-prod deployments/acme-prod
+cp values/deployments/parmazip-production.yaml values/deployments/acme-prod.yaml
 
 # 4. Edit configuration
-vim deployments/acme-prod/values.yaml
+vim values/deployments/acme-prod.yaml
 # Required changes:
 #   - global.domain: acme.com
 #   - global.namespace: acme-prod
-#   - argocd.repoURL: https://github.com/yourorg/monobase-infra.git
 #   - api.image.tag: "5.215.2" (pin version, not "latest")
 #   - account.image.tag: "1.0.0" (pin version, not "latest")
 
 # 5. Commit and push to deploy
-git add deployments/acme-prod/
-git commit -m "Add acme-prod"
+git add values/deployments/acme-prod.yaml
+git commit -m "feat: add acme-prod deployment"
 git push
 ```
 
@@ -165,7 +160,7 @@ The bootstrap script outputs ArgoCD UI access information. Use the admin credent
 
 ```bash
 # Just edit, commit, and push - ArgoCD syncs automatically
-vim deployments/acme-prod/values-production.yaml
+vim values/deployments/acme-prod.yaml
 git commit -am "Update acme-prod: increase replicas"
 git push
 # ✓ ArgoCD auto-syncs only acme-prod
@@ -200,59 +195,57 @@ cd monobase-infra
 ./scripts/bootstrap.sh
 
 # 5. Create client configuration
-cp -r deployments/example-prod deployments/acme-prod
+cp values/deployments/parmazip-production.yaml values/deployments/acme-prod.yaml
 
 # 6. Edit configuration
-vim deployments/acme-prod/values.yaml
+vim values/deployments/acme-prod.yaml
 # Required changes:
 #   - global.domain: acme.com
 #   - global.namespace: acme-prod
 #   - global.storage.provider: cloud-default (EKS/AKS/GKE) or longhorn (on-prem)
-#   - argocd.repoURL: https://github.com/yourorg/monobase-infra.git
 #   - api.image.tag: "5.215.2" (pin version, not "latest")
 #   - account.image.tag: "1.0.0" (pin version, not "latest")
 
 # 7. Commit and push to deploy
-git add deployments/acme-prod/
-git commit -m "Add acme-prod"
+git add values/deployments/acme-prod.yaml
+git commit -m "feat: add acme-prod deployment"
 git push
 # ✓ ArgoCD auto-detects and deploys!
 ```
 
 ## ⚙️ Configuration Approach
 
-### Example-Based Configuration
+### Values-Based Configuration
 
-This template provides **complete reference examples** for each environment type:
+All configuration is consolidated in the `values/` directory:
 
 **Reference Examples:**
-- `deployments/example-prod/` - Complete production configuration (HA, backups, security)
-- `deployments/example-staging/` - Complete staging configuration (single replicas, Mailpit enabled)
-- `deployments/example-k3d/` - Complete local development configuration (minimal resources)
+- `values/deployments/parmazip-production.yaml` - Complete production configuration (HA, backups, security)
+- `values/deployments/parmazip-staging.yaml` - Complete staging configuration (single replicas, Mailpit enabled)
 
 **Your Client Config:**
-1. Copy the appropriate example to `deployments/yourclient-{env}/`
-2. Edit `values.yaml` to change required values (domain, namespace, image tags)
+1. Copy the appropriate example: `cp values/deployments/parmazip-production.yaml values/deployments/yourclient-{env}.yaml`
+2. Edit the new file to change required values (domain, namespace, image tags)
 3. Customize as needed (resources, replicas, optional components)
 
 **Example:**
 ```bash
 # Create production deployment
-cp -r deployments/example-prod deployments/acme-prod
-vim deployments/acme-prod/values.yaml
+cp values/deployments/parmazip-production.yaml values/deployments/acme-prod.yaml
+vim values/deployments/acme-prod.yaml
 # Change: domain, namespace, image tags, backup bucket
 
 # Create staging deployment
-cp -r deployments/example-staging deployments/acme-staging
-vim deployments/acme-staging/values.yaml
+cp values/deployments/parmazip-staging.yaml values/deployments/acme-staging.yaml
+vim values/deployments/acme-staging.yaml
 # Change: domain, namespace
 
-git add deployments/acme-*
-git commit -m "Add acme deployments"
+git add values/deployments/acme-*
+git commit -m "feat: add acme deployments"
 git push
 ```
 
-See example READMEs for detailed configuration guides.
+ArgoCD automatically discovers any YAML files in `values/deployments/` and deploys them.
 
 ## 📋 What's Included
 
@@ -338,18 +331,6 @@ monobase-infra/                   # Base template repository
 │   ├── infrastructure/           # Infrastructure apps
 │   └── applications/             # Application apps
 │
-├── deployments/                  # Configuration directory
-│   ├── example-prod/             # Production reference example ⭐
-│   │   ├── values.yaml           #   Complete production config (505 lines)
-│   │   └── README.md             #   Production deployment guide
-│   ├── example-staging/          # Staging reference example ⭐
-│   │   ├── values.yaml           #   Complete staging config (450 lines)
-│   │   └── README.md             #   Staging deployment guide
-│   ├── example-k3d/              # Local k3d development example ⭐
-│   │   ├── values.yaml           #   Complete dev config (155 lines)
-│   │   └── README.md             #   Local development guide
-│   └── [your-client-env]/        # Your client/env configs go here
-│
 ├── docs/                         # Documentation
 └── scripts/                      # Automation scripts
 ```
@@ -363,7 +344,7 @@ monobase-infra/                   # Base template repository
 **🚀 Getting Started:**
 - [Client Onboarding](docs/getting-started/CLIENT-ONBOARDING.md) - Fork, configure, deploy
 - [Deployment Guide](docs/getting-started/DEPLOYMENT.md) - Step-by-step deployment
-- [Example Deployments](deployments/) - Production, staging, and k3d reference examples
+- [Example Deployments](values/deployments/) - Production and staging reference examples
 
 **🏗️ Architecture:**
 - [System Architecture](docs/architecture/ARCHITECTURE.md) - Design decisions, components
@@ -398,7 +379,7 @@ git remote add upstream https://github.com/monobaselabs/monobase-infra.git
 git fetch upstream
 git merge upstream/main
 
-# Resolve any conflicts (usually keep your deployments/, accept upstream changes)
+# Resolve any conflicts (usually keep your values/deployments/, accept upstream changes)
 git push origin main
 ```
 

@@ -272,7 +272,7 @@ kubectl logs -n cert-manager deploy/cert-manager -f
 ### Reference ExternalSecret in Helm Values
 
 ```yaml
-# In deployments/example-staging/values.yaml
+# In values/deployments/example-staging.yaml
 postgresql:
   auth:
     existingSecret: postgresql-secrets
@@ -283,7 +283,7 @@ postgresql:
 ### Create ExternalSecret for Deployment
 
 ```yaml
-# In deployments/example-staging/external-secrets/postgresql.yaml
+# In values/deployments/example-staging.yaml external-secrets/postgresql.yaml
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
@@ -389,7 +389,7 @@ External Secrets Operator uses a **declarative, GitOps-first approach**:
 **Step 1: Create ExternalSecret in Git**
 
 ```yaml
-# deployments/example-staging/cloudflare-externalsecret.yaml
+# values/deployments/example-staging.yaml cloudflare-externalsecret.yaml
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:

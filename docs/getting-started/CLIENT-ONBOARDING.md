@@ -23,13 +23,9 @@ cd YOUR-FORK
 ## Step 2: Create Client Configuration
 
 ```bash
-# Create deployment configuration directory
-mkdir -p deployments/myclient-prod
-mkdir -p deployments/myclient-staging
-
-# Copy base templates
-cp deployments/templates/production-base.yaml deployments/myclient-prod/values.yaml
-cp deployments/templates/staging-base.yaml deployments/myclient-staging/values.yaml
+# Create deployment configuration files from examples
+cp values/deployments/parmazip-production.yaml values/deployments/myclient-prod.yaml
+cp values/deployments/parmazip-staging.yaml values/deployments/myclient-staging.yaml
 ```
 
 ## Step 3: Customize Configuration
@@ -37,7 +33,7 @@ cp deployments/templates/staging-base.yaml deployments/myclient-staging/values.y
 Edit the values files:
 
 ```bash
-vim deployments/myclient-prod/values.yaml
+vim values/deployments/myclient-prod.yaml
 ```
 
 **Key items to customize:**
@@ -93,7 +89,7 @@ vim deployments/myclient-prod/values.yaml
 Update secrets configuration in your values file:
 
 ```yaml
-# deployments/myclient-prod/values.yaml
+# values/deployments/myclient-prod.yaml
 
 externalSecrets:
   provider: aws  # or azure, gcp, vault
@@ -128,8 +124,8 @@ aws secretsmanager create-secret \\
 ## Step 6: Commit Configuration
 
 ```bash
-git add deployments/myclient-prod/ deployments/myclient-staging/
-git commit -m "Add MyClient production and staging configurations"
+git add values/deployments/myclient-prod.yaml values/deployments/myclient-staging.yaml
+git commit -m "feat: add MyClient production and staging deployments"
 git push origin main
 ```
 
@@ -142,7 +138,7 @@ git push origin main
 # This installs:
 # 1. ArgoCD itself
 # 2. Infrastructure Root Application (manages all cluster infrastructure)
-# 3. ApplicationSet (auto-discovers client configs in deployments/)
+# 3. ApplicationSet (auto-discovers client configs in values/deployments/)
 
 # Wait for infrastructure to deploy (5-10 minutes)
 kubectl get application -n argocd -w
@@ -267,7 +263,7 @@ kubectl get certificate myclient-domain-tls -n gateway-system
 Update your client's `values.yaml` to use custom domain:
 
 ```yaml
-# deployments/myclient-prod/values.yaml
+# values/deployments/myclient-prod.yaml
 
 gateway:
   hostname: "app.client.com"  # Custom domain instead of subdomain

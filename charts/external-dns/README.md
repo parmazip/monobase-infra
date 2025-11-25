@@ -156,7 +156,7 @@ instances:
 
 ### 2. Configure in Deployment Values
 
-Add to `deployments/*/values.yaml`:
+Add to `values/deployments/*.yaml`:
 
 ```yaml
 externalDNS:

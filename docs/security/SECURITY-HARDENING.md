@@ -271,7 +271,7 @@ kubectl describe role api -n myclient-prod
 
 ```bash
 # ArgoCD admin access via SSO (not password)
-# Configure in infrastructure/argocd/helm-values.yaml
+# Configure in values/infrastructure/main.yaml
 
 # kubectl access via RBAC
 # Create read-only role for developers:
@@ -323,7 +323,7 @@ kubectl create secret generic longhorn-crypto \\
 **PostgreSQL Encryption:**
 
 ```yaml
-# Enable in deployments/*/values.yaml
+# Enable in values/deployments/*.yaml
 postgresql:
   encryption:
     enabled: true

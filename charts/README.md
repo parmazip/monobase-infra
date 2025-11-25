@@ -26,13 +26,13 @@ deployments/
 └── example-k3d/        # Local k3d testing
 
 # Deploy via ArgoCD (GitOps):
-git add deployments/myclient-prod/values.yaml
+git add values/deployments/myclient-prod.yaml
 git commit -m "feat: add myclient production config"
 git push
 # ArgoCD auto-discovers and deploys
 
 # Or manually with Helm:
-helm install myclient-api ./charts/api -f deployments/myclient-prod/values.yaml
+helm install myclient-api ./charts/api -f values/deployments/myclient-prod.yaml
 ```
 
 ## Charts
@@ -100,7 +100,7 @@ Each chart has detailed parameter documentation:
 
 For complete deployment configuration guides, see:
 
-- **[../deployments/README.md](../deployments/README.md)** - How to configure deployments
+- **[../values/deployments/README.md](...yaml deployments/README.md)** - How to configure deployments
 - **[../docs/getting-started/CLIENT-ONBOARDING.md](../docs/getting-started/CLIENT-ONBOARDING.md)** - New client setup
 
 ## Example Global Configuration
@@ -158,10 +158,10 @@ charts/{chart-name}/
 helm lint ./charts/api
 
 # Dry-run install
-helm install --dry-run --debug myclient-api ./charts/api -f deployments/example-prod/values.yaml
+helm install --dry-run --debug myclient-api ./charts/api -f values/deployments/example-prod.yaml
 
 # Render templates
-helm template myclient-api ./charts/api -f deployments/example-prod/values.yaml
+helm template myclient-api ./charts/api -f values/deployments/example-prod.yaml
 ```
 
 ### Chart Dependencies

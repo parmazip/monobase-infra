@@ -13,7 +13,7 @@ This directory contains ArgoCD Application resources for GitOps-managed infrastr
 
 2. **Per-Client Applications** (bootstrap/applicationset-auto-discover.yaml)
    - Deployed ONCE per cluster
-   - Auto-discovers client/env configs in deployments/
+   - Auto-discovers client/env configs in values/deployments/
    - Creates per-client Applications automatically
 
 ## Directory Structure
@@ -63,11 +63,10 @@ argocd/
 # 3. ApplicationSet (per-client auto-discovery)
 
 # Step 2: Add client/env configurations
-mkdir deployments/myclient-prod
-cp deployments/templates/production-base.yaml deployments/myclient-prod/values.yaml
-vim deployments/myclient-prod/values.yaml  # Edit domain, namespace, etc.
-git add deployments/myclient-prod/
-git commit -m "Add myclient-prod"
+cp values/deployments/parmazip-production.yaml values/deployments/myclient-prod.yaml
+vim values/deployments/myclient-prod.yaml  # Edit domain, namespace, etc.
+git add values/deployments/myclient-prod.yaml
+git commit -m "feat: add myclient-prod deployment"
 git push
 
 # Step 3: ArgoCD auto-discovers and deploys!
@@ -122,19 +121,19 @@ git push
 | api | 3 | Per-client | Backend application |
 | account | 3 | Per-client | Frontend application |
 
-**Configuration:** Each client has `deployments/{client-env}/values.yaml`
+**Configuration:** Each client has `values/deployments/{client-env}.yaml`
 
 **GitOps Workflow:**
 ```bash
 # Add new client
-mkdir deployments/newclient-prod
-cp deployments/templates/production-base.yaml deployments/newclient-prod/values.yaml
-vim deployments/newclient-prod/values.yaml
-git add deployments/newclient-prod/ && git commit -m "Add newclient-prod" && git push
+# Create values/deployments/newclient-prod.yaml
+cp values/deployments/parmazip-production-base.yaml values/deployments/newclient-prod.yaml
+vim values/deployments/newclient-prod.yaml
+git add values/deployments/newclient-prod.yaml && git commit -m "Add newclient-prod" && git push
 # ✓ ArgoCD auto-creates all Applications for newclient-prod
 
 # Update existing client
-vim deployments/existingclient-prod/values.yaml
+vim values/deployments/existingclient-prod.yaml
 git commit -am "Update existingclient: enable minio" && git push
 # ✓ ArgoCD auto-syncs only existingclient-prod
 ```
@@ -214,14 +213,14 @@ argocd app get infrastructure
 ### Add New Client/Environment
 
 ```bash
-mkdir deployments/newclient-staging
-cp deployments/templates/staging-base.yaml deployments/newclient-staging/values.yaml
+# Create values/deployments/newclient-staging.yaml
+cp values/deployments/parmazip-staging-base.yaml values/deployments/newclient-staging.yaml
 
 # Edit values
-vim deployments/newclient-staging/values.yaml
+vim values/deployments/newclient-staging.yaml
 
 # Commit and push
-git add deployments/newclient-staging/
+git add values/deployments/newclient-staging.yaml
 git commit -m "Add newclient-staging environment"
 git push
 
@@ -233,7 +232,7 @@ kubectl get applications -n argocd | grep newclient-staging
 
 ```bash
 # Edit configuration
-vim deployments/myclient-prod/values.yaml
+vim values/deployments/myclient-prod.yaml
 
 # Commit and push
 git commit -am "myclient-prod: increase API replicas to 3"

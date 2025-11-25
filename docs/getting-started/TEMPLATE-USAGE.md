@@ -16,7 +16,7 @@ The Monobase Infrastructure template is designed for a **fork-based workflow**:
 **What goes in the base template:**
 ✅ Generic Helm charts (100% parameterized)
 ✅ Infrastructure templates (.yaml.template files)
-✅ Reference configuration (deployments/example.com/)
+✅ Reference configuration (values/deployments/example.com.yaml )
 ✅ Documentation
 ✅ Scripts
 
@@ -33,15 +33,15 @@ The Monobase Infrastructure template is designed for a **fork-based workflow**:
 vim charts/api/Chart.yaml
 
 # 2. Update reference config if needed
-vim deployments/example.com/values-production.yaml
+vim values/deployments/example.com.yaml values-production.yaml
 
 # 3. Update documentation (co-located with code)
 vim charts/api/README.md  # If API parameters changed
-vim deployments/README.md  # If deployment-level parameters changed
+vim values/deployments/README.md  # If deployment-level parameters changed
 
 # 4. Test with example.com config
 helm template test charts/api \\
-  -f deployments/example.com/values-production.yaml
+  -f values/deployments/example.com.yaml values-production.yaml
 
 # 5. Commit and tag
 git add .
