@@ -114,9 +114,9 @@ spec:
         - name: STORAGE_PUBLIC_ENDPOINT
           value: {{ include "api.minio.url" . | quote }}
         - name: STORAGE_BUCKET
-          value: {{ (index .Values.minio.buckets 0).name | default "monobase-files" | quote }}
+          value: {{ (index .Values.minio.minio.buckets 0).name | default "monobase-files" | quote }}
         - name: STORAGE_REGION
-          value: {{ .Values.minio.region | default "us-east-1" | quote }}
+          value: {{ .Values.minio.minio.region | default "us-east-1" | quote }}
         - name: STORAGE_ACCESS_KEY_ID
           valueFrom:
             secretKeyRef:
