@@ -2,10 +2,10 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "account.fullname" . }}
-  namespace: {{ include "account.namespace" . }}
+  name: {{ include "provider.fullname" . }}
+  namespace: {{ include "provider.namespace" . }}
   labels:
-    {{- include "account.labels" . | nindent 4 }}
+    {{- include "provider.labels" . | nindent 4 }}
 data:
   {{- range $key, $value := .Values.config }}
   {{ $key }}: {{ $value | quote }}

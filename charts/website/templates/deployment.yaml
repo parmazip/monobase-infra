@@ -2,17 +2,17 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "account.fullname" . }}
-  namespace: {{ include "account.namespace" . }}
+  name: {{ include "website.fullname" . }}
+  namespace: {{ include "website.namespace" . }}
   labels:
-    {{- include "account.labels" . | nindent 4 }}
+    {{- include "website.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "account.selectorLabels" . | nindent 6 }}
+      {{- include "website.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       annotations:
@@ -21,13 +21,13 @@ spec:
         {{- toYaml . | nindent 8 }}
         {{- end }}
       labels:
-        {{- include "account.selectorLabels" . | nindent 8 }}
+        {{- include "website.selectorLabels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "account.serviceAccountName" . }}
+      serviceAccountName: {{ include "website.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
@@ -80,7 +80,7 @@ spec:
         emptyDir: {}
       - name: caddy-config
         emptyDir: {}
-      {{- $nodePool := include "account.nodePool" . -}}
+      {{- $nodePool := include "website.nodePool" . -}}
       {{- if or $nodePool .Values.nodeSelector }}
       nodeSelector:
         {{- if $nodePool }}

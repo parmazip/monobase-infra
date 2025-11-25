@@ -2,14 +2,14 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: {{ include "account.fullname" . }}
-  namespace: {{ include "account.namespace" . }}
+  name: {{ include "provider.fullname" . }}
+  namespace: {{ include "provider.namespace" . }}
   labels:
-    {{- include "account.labels" . | nindent 4 }}
+    {{- include "provider.labels" . | nindent 4 }}
 spec:
   selector:
     matchLabels:
-      {{- include "account.selectorLabels" . | nindent 6 }}
+      {{- include "provider.selectorLabels" . | nindent 6 }}
   endpoints:
     - port: http
       path: {{ .Values.serviceMonitor.path | default "/metrics" }}

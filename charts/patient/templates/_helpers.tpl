@@ -1,14 +1,14 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "account.name" -}}
+{{- define "patient.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Create a default fully qualified app name.
 */}}
-{{- define "account.fullname" -}}
+{{- define "patient.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -24,16 +24,16 @@ Create a default fully qualified app name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "account.chart" -}}
+{{- define "patient.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "account.labels" -}}
-helm.sh/chart: {{ include "account.chart" . }}
-{{ include "account.selectorLabels" . }}
+{{- define "patient.labels" -}}
+helm.sh/chart: {{ include "patient.chart" . }}
+{{ include "patient.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -44,51 +44,51 @@ app.kubernetes.io/part-of: mycureapp
 {{/*
 Selector labels
 */}}
-{{- define "account.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "account.name" . }}
+{{- define "patient.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "patient.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "account.serviceAccountName" -}}
+{{- define "patient.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "account.fullname" .) .Values.serviceAccount.name }}
+{{- default (include "patient.fullname" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
 
 {{/*
-Gateway hostname - defaults to account.{global.domain}
+Gateway hostname - defaults to patient.{global.domain}
 */}}
-{{- define "account.gateway.hostname" -}}
+{{- define "patient.gateway.hostname" -}}
 {{- if .Values.gateway.hostname }}
 {{- .Values.gateway.hostname }}
 {{- else }}
-{{- printf "account.%s" .Values.global.domain }}
+{{- printf "patient.%s" .Values.global.domain }}
 {{- end }}
 {{- end }}
 
 {{/*
 Namespace - uses global.namespace or Release.Namespace
 */}}
-{{- define "account.namespace" -}}
+{{- define "patient.namespace" -}}
 {{- default .Release.Namespace .Values.global.namespace }}
 {{- end }}
 
 {{/*
 Gateway parent reference name
 */}}
-{{- define "account.gateway.name" -}}
+{{- define "patient.gateway.name" -}}
 {{- default "shared-gateway" .Values.global.gateway.name }}
 {{- end }}
 
 {{/*
 Gateway parent reference namespace
 */}}
-{{- define "account.gateway.namespace" -}}
+{{- define "patient.gateway.namespace" -}}
 {{- default "gateway-system" .Values.global.gateway.namespace }}
 {{- end }}
 
@@ -96,7 +96,7 @@ Gateway parent reference namespace
 Node Pool - returns the effective node pool name (component-level or global)
 Returns empty string if disabled or not configured
 */}}
-{{- define "account.nodePool" -}}
+{{- define "patient.nodePool" -}}
 {{- if hasKey .Values "nodePool" -}}
   {{- if and .Values.nodePool (hasKey .Values.nodePool "enabled") (not .Values.nodePool.enabled) -}}
     {{- /* Component explicitly disabled node pool */ -}}
