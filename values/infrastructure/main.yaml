@@ -562,7 +562,7 @@ falco:
 # Monitoring - Prometheus + Grafana stack
 monitoring:
   enabled: true  # Optional, enable for observability
-  version: 11.3.10  # Bitnami kube-prometheus chart version
+  version: 11.3.9  # Bitnami kube-prometheus chart version
   
   # Prometheus configuration
   prometheus:
