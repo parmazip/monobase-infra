@@ -96,14 +96,6 @@ const SERVICES: Record<string, ServiceConfig> = {
     credentials: null,
     note: 'Alertmanager may be disabled in some environments'
   },
-  longhorn: {
-    namespace: 'longhorn-system',
-    serviceName: 'longhorn-frontend',
-    localPort: 8080,
-    remotePort: 80,
-    displayName: 'Longhorn UI',
-    credentials: null
-  },
   minio: {
     namespace: null, // per-deployment
     serviceName: 'minio',
@@ -571,7 +563,6 @@ ${chalk.bold('SERVICES:')}
   ${chalk.cyan('grafana')}       Grafana UI (port 8080)
   ${chalk.cyan('prometheus')}    Prometheus UI (port 9090)
   ${chalk.cyan('alertmanager')}  Alertmanager UI (port 9093)
-  ${chalk.cyan('longhorn')}      Longhorn UI (port 8080)
   ${chalk.cyan('minio')}         MinIO Console (port 9001) - per-deployment
   ${chalk.cyan('mailpit')}       Mailpit UI (port 8025) - per-deployment
 

@@ -98,8 +98,6 @@ StorageClass name - auto-detects based on provider
 {{- define "api.storageClass" -}}
 {{- if .Values.global.storage.className -}}
 {{- .Values.global.storage.className }}
-{{- else if eq .Values.global.storage.provider "longhorn" -}}
-longhorn
 {{- else if eq .Values.global.storage.provider "ebs-csi" -}}
 gp3
 {{- else if eq .Values.global.storage.provider "azure-disk" -}}
