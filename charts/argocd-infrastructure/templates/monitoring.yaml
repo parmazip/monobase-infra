@@ -16,7 +16,7 @@ spec:
   
   source:
     chart: kube-prometheus
-    repoURL: oci://registry-1.docker.io/bitnamicharts
+    repoURL: registry-1.docker.io/bitnamicharts
     targetRevision: {{ .Values.monitoring.version }}
     helm:
       releaseName: monitoring
