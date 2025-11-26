@@ -40,9 +40,19 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
+      - RespectIgnoreDifferences=true
     retry:
       limit: 5
       backoff:
         duration: 10s
         maxDuration: 5m
+
+  ignoreDifferences:
+    # HTTPRoute status is managed by Gateway controller
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      jsonPointers:
+        - /status
+        - /spec/parentRefs
+        - /spec/rules/0/matches
 {{- end }}

@@ -34,9 +34,17 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
+      - RespectIgnoreDifferences=true
     retry:
       limit: 5
       backoff:
         duration: 5s
         maxDuration: 3m
+
+  ignoreDifferences:
+    # ExternalSecret status is managed by external-secrets operator
+    - group: external-secrets.io
+      kind: ExternalSecret
+      jsonPointers:
+        - /status
 {{- end }}
