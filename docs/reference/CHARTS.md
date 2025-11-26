@@ -10,13 +10,13 @@ This directory contains **Helm charts** for all Monobase components:
 - **account** - Monobase Account frontend application  
 - **namespace** - Namespace creation with Pod Security Standards
 
-**What's here:** Application Helm charts (internal implementation)  
-**What you deploy:** Client configurations in `../deployments/` (root level)  
-**Complements:** Infrastructure in `../infrastructure/` and cluster provisioning in `../clusters/`
+**What's here:** Application Helm charts (internal implementation)
+**What you deploy:** Client configurations in `../../values/deployments/` (root level)
+**Complements:** Infrastructure in `../../infrastructure/` and cluster provisioning
 
 ## Quick Start
 
-**Note:** You typically work with deployment configs in `../deployments/`, not these charts directly.
+**Note:** You typically work with deployment configs in `../../values/deployments/`, not these charts directly.
 
 ```bash
 # Deployment configs use these charts:
@@ -81,7 +81,7 @@ Global parameters are shared across all charts and must be configured in your de
 - **Type:** string
 - **Options:** `cloud-default`, `longhorn`, `local-path`
 - **Default:** `cloud-default`
-- **Description:** Storage provider (see `../docs/operations/STORAGE.md`)
+- **Description:** Storage provider (see `../operations/STORAGE.md`)
 
 ### global.storage.className
 - **Type:** string
@@ -101,7 +101,7 @@ Each chart has detailed parameter documentation:
 For complete deployment configuration guides, see:
 
 - **[../values/deployments/README.md](...yaml deployments/README.md)** - How to configure deployments
-- **[../docs/getting-started/CLIENT-ONBOARDING.md](../docs/getting-started/CLIENT-ONBOARDING.md)** - New client setup
+- **[../getting-started/CLIENT-ONBOARDING.md](../getting-started/CLIENT-ONBOARDING.md)** - New client setup
 
 ## Example Global Configuration
 
@@ -189,4 +189,4 @@ helm dependency update
 1. **Read:** Chart-specific READMEs for detailed parameter documentation
 2. **Configure:** Create deployment values in `../deployments/`
 3. **Deploy:** Use ArgoCD GitOps or manual Helm install
-4. **Monitor:** See `../docs/operations/MONITORING.md`
+4. **Monitor:** See `../operations/MONITORING.md`

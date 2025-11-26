@@ -99,7 +99,7 @@ This repository includes OpenTofu/Terraform modules for provisioning Kubernetes 
 ./scripts/bootstrap.sh
 ```
 
-See [terraform/README.md](terraform/README.md) for module documentation and [docs/getting-started/CLUSTER-PROVISIONING.md](docs/getting-started/CLUSTER-PROVISIONING.md) for detailed provisioning workflows.
+See [docs/reference/TERRAFORM-MODULES.md](docs/reference/TERRAFORM-MODULES.md) for module documentation and [docs/getting-started/CLUSTER-PROVISIONING.md](docs/getting-started/CLUSTER-PROVISIONING.md) for detailed provisioning workflows.
 
 **This template works with ANY Kubernetes cluster regardless of how it was provisioned.**
 

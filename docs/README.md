@@ -41,6 +41,15 @@ Security hardening, compliance, and policies.
 - **[SECURITY-HARDENING.md](security/SECURITY-HARDENING.md)** - Security best practices and hardening guide
 - **[SECURITY_COMPLIANCE.md](security/SECURITY_COMPLIANCE.md)** - HIPAA, SOC2, GDPR compliance
 
+## 📚 Reference
+
+Technical reference documentation for components:
+
+- **[reference/CHARTS.md](reference/CHARTS.md)** - Helm charts overview and global parameters
+- **[reference/TERRAFORM-MODULES.md](reference/TERRAFORM-MODULES.md)** - Terraform module selection and sizing
+- **[reference/SCRIPTS.md](reference/SCRIPTS.md)** - Automation scripts documentation
+- **[reference/VALUES-CONFIGURATION.md](reference/VALUES-CONFIGURATION.md)** - Values directory structure and configuration
+
 ## 🧪 Development
 
 **Terraform/OpenTofu Module Development:**
@@ -81,8 +90,8 @@ Security hardening, compliance, and policies.
 1. [../terraform/CONTRIBUTING.md](../terraform/CONTRIBUTING.md)
 
 **Configure values:**
-1. [../deployments/README.md](../deployments/README.md) - Deployment configuration guide
-2. [../charts/README.md](../charts/README.md) - Global parameters and chart overview
+1. [reference/VALUES-CONFIGURATION.md](reference/VALUES-CONFIGURATION.md) - Deployment configuration guide
+2. [reference/CHARTS.md](reference/CHARTS.md) - Global parameters and chart overview
 3. [../charts/api/README.md](../charts/api/README.md) - API-specific parameters
 4. [../charts/account/README.md](../charts/account/README.md) - Account frontend parameters
 
