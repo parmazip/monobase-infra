@@ -18,11 +18,31 @@ spec:
   source:
     repoURL: {{ .Values.argocd.repoURL }}
     targetRevision: {{ .Values.argocd.targetRevision }}
-    path: infrastructure/velero
+    path: charts/velero-resources
     helm:
       releaseName: velero-resources
-      valueFiles:
-        - ../../../values/infrastructure/main.yaml
+      values: |
+        velero:
+          enabled: {{ .Values.velero.enabled | default true }}
+          provider: {{ .Values.velero.provider | default "aws" }}
+          {{- if eq (.Values.velero.provider | default "aws") "aws" }}
+          aws:
+            region: {{ .Values.velero.aws.region | default "us-east-1" }}
+            bucket: {{ .Values.velero.aws.bucket | required "velero.aws.bucket is required" }}
+          {{- end }}
+          {{- if eq .Values.velero.provider "gcp" }}
+          gcp:
+            bucket: {{ .Values.velero.gcp.bucket | required "velero.gcp.bucket is required" }}
+            project: {{ .Values.velero.gcp.project | required "velero.gcp.project is required" }}
+          {{- end }}
+          schedules:
+            infrastructure:
+              hourly:
+                enabled: {{ .Values.velero.schedules.infrastructure.hourly.enabled | default true }}
+              daily:
+                enabled: {{ .Values.velero.schedules.infrastructure.daily.enabled | default true }}
+              weekly:
+                enabled: {{ .Values.velero.schedules.infrastructure.weekly.enabled | default true }}
 
   destination:
     server: https://kubernetes.default.svc
