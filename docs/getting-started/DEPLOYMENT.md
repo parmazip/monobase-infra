@@ -89,34 +89,34 @@ cat infrastructure/namespaces/namespace.yaml.template | \\
   kubectl apply -f -
 ```
 
-### Step 2: Deploy Longhorn (Storage)
+### Step 2: Deploy cloud storage (Storage)
 
 ```bash
 # Add Helm repository
-helm repo add longhorn https://charts.longhorn.io
+helm repo add cloud-default https://charts.cloud-default.io
 helm repo update
 
-# Install Longhorn
-helm install longhorn longhorn/longhorn \\
-  --namespace longhorn-system \\
+# Install cloud storage
+helm install cloud-default cloud-default/cloud-default \\
+  --namespace cloud-default-system \\
   --create-namespace \\
-  --values infrastructure/longhorn/helm-values.yaml
+  --values infrastructure/cloud-default/helm-values.yaml
 
 # Wait for ready
 kubectl wait --for=condition=ready pod \\
-  -l app=longhorn-manager \\
-  -n longhorn-system \\
+  -l app=cloud-default-manager \\
+  -n cloud-default-system \\
   --timeout=600s
 
 # Apply StorageClass
-kubectl apply -f infrastructure/longhorn/storageclass.yaml
+kubectl apply -f infrastructure/cloud-default/storageclass.yaml
 
 # Apply backup configuration
-kubectl apply -f infrastructure/longhorn/backup-config.yaml
+kubectl apply -f infrastructure/cloud-default/backup-config.yaml
 
 # Verify
-kubectl get storageclass longhorn
-kubectl get pods -n longhorn-system
+kubectl get storageclass cloud-default
+kubectl get pods -n cloud-default-system
 ```
 
 **Time:** ~5-10 minutes
@@ -537,21 +537,21 @@ curl -v https://api.myclient.com 2>&1 | grep subject
 
 ## Backup Configuration
 
-### Configure Longhorn Backup Target
+### Configure cloud storage Backup Target
 
 ```bash
 # Set backup target (S3 or NFS)
-kubectl -n longhorn-system patch settings.longhorn.io backup-target \\
+kubectl -n cloud-default-system patch settings.cloud-default.io backup-target \\
   --type=merge \\
-  --patch='{"value": "s3://myclient-prod-backups@us-east-1/longhorn"}'
+  --patch='{"value": "s3://myclient-prod-backups@us-east-1/cloud-default"}'
 
 # Set backup credentials
-kubectl -n longhorn-system patch settings.longhorn.io backup-target-credential-secret \\
+kubectl -n cloud-default-system patch settings.cloud-default.io backup-target-credential-secret \\
   --type=merge \\
-  --patch='{"value": "longhorn-backup-credentials"}'
+  --patch='{"value": "cloud-default-backup-credentials"}'
 
 # Verify
-kubectl get settings.longhorn.io backup-target -n longhorn-system -o yaml
+kubectl get settings.cloud-default.io backup-target -n cloud-default-system -o yaml
 ```
 
 ### Test Backups
@@ -625,7 +625,7 @@ echo "Password: $GRAFANA_PASSWORD"
 ## Deployment Checklist
 
 ### Infrastructure
-- [ ] Longhorn deployed and healthy
+- [ ] cloud storage deployed and healthy
 - [ ] cert-manager deployed
 - [ ] Envoy Gateway deployed
 - [ ] LoadBalancer IP assigned

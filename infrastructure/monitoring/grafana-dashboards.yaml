@@ -29,7 +29,7 @@ data:
             "type": "text",
             "gridPos": {"h": 8, "w": 24, "x": 0, "y": 0},
             "options": {
-              "content": "# Monobase Infrastructure Monitoring\\n\\nDashboards available:\\n- **Cluster Overview**: Node and pod metrics\\n- **API Performance**: API latency, throughput, errors\\n- **Database Performance**: PostgreSQL metrics\\n- **Storage Health**: Longhorn volume metrics\\n- **Gateway Metrics**: HTTPRoute and traffic stats\\n\\n**Recommended Community Dashboards:**\\n- Kubernetes Cluster Monitoring (Dashboard ID: 7249)\\n- Node Exporter Full (Dashboard ID: 1860)\\n- PostgreSQL Database (Dashboard ID: 9628)\\n\\n**Custom Dashboards:**\\nAdd your own dashboards by creating ConfigMaps with label `grafana_dashboard='1'`"
+              "content": "# Monobase Infrastructure Monitoring\\n\\nDashboards available:\\n- **Cluster Overview**: Node and pod metrics\\n- **API Performance**: API latency, throughput, errors\\n- **Database Performance**: PostgreSQL metrics\\n- **Storage Health**: Cloud Storage volume metrics\\n- **Gateway Metrics**: HTTPRoute and traffic stats\\n\\n**Recommended Community Dashboards:**\\n- Kubernetes Cluster Monitoring (Dashboard ID: 7249)\\n- Node Exporter Full (Dashboard ID: 1860)\\n- PostgreSQL Database (Dashboard ID: 9628)\\n\\n**Custom Dashboards:**\\nAdd your own dashboards by creating ConfigMaps with label `grafana_dashboard='1'`"
             }
           }
         ]

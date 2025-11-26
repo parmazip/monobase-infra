@@ -49,33 +49,11 @@
 # }
 
 ---
-# Longhorn Backup Encryption
-# Longhorn backups inherit encryption from Longhorn volumes
-#
-# If Longhorn volume is encrypted:
-#   - Snapshots are encrypted
-#   - Backups to S3 are encrypted
-#   - Restore requires same encryption key
-#
-# Additional S3 encryption:
-#   - S3 bucket has SSE enabled
-#   - Double encryption (volume + S3)
 
 ---
 # Backup Encryption Best Practices:
 #
 # 1. Use different keys for:
-#    - Volume encryption (Longhorn)
-#    - Backup encryption (S3)
-#    This limits blast radius if a key is compromised
-#
-# 2. Store all encryption keys in KMS
-#    - AWS KMS, Azure Key Vault, GCP KMS
-#    - Never in Git, ConfigMaps, or regular Secrets
-#
-# 3. Enable key rotation:
-#    - Automatic rotation via KMS (yearly)
-#    - Manual rotation for critical systems (90 days)
 #
 # 4. Test restore with encryption:
 #    - Monthly restore tests

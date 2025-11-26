@@ -128,7 +128,6 @@ config:
   - '[*,argocd,*]'
   - '[*,cert-manager,*]'
   - '[*,external-secrets-system,*]'
-  - '[*,longhorn-system,*]'
   - '[*,monitoring,*]'
   - '[*,falco,*]'
   - '[Node,*,*]'

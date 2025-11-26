@@ -72,20 +72,6 @@ resource "null_resource" "get_kubeconfig" {
   depends_on = [null_resource.k3s_first_server]
 }
 
-# Install Longhorn (if enabled)
-resource "null_resource" "install_longhorn" {
-  count = var.install_longhorn ? 1 : 0
-
-  provisioner "local-exec" {
-    command = <<-EOT
-      export KUBECONFIG=${path.module}/kubeconfig.yaml
-      kubectl apply -f https://raw.githubusercontent.com/longhorn/longhorn/v1.6.0/deploy/longhorn.yaml
-    EOT
-  }
-
-  depends_on = [null_resource.get_kubeconfig]
-}
-
 # Install MetalLB (if enabled)
 resource "null_resource" "install_metallb" {
   count = var.install_metallb ? 1 : 0

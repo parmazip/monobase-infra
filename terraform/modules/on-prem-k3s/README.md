@@ -10,7 +10,7 @@ Provisions K3s cluster on bare metal servers for healthcare on-prem deployments.
 - ✅ **Lightweight** - <512MB RAM, 1 CPU per server
 - ✅ **Automatic setup** - SSH-based provisioning
 - ✅ **LoadBalancer** - MetalLB for service exposure
-- ✅ **Storage** - Longhorn distributed storage
+- ✅ **Storage** - Local path provisioner
 - ✅ **Air-gapped ready** - Offline installation support
 
 ## Requirements
@@ -58,7 +58,7 @@ module "k3s_cluster" {
   
   # Components
   enable_ha        = true   # HA with embedded etcd
-  install_longhorn = true   # Distributed storage
+  install_cloud-default = true   # Distributed storage
   install_metallb  = true   # LoadBalancer
   metallb_ip_range = "192.168.1.100-192.168.1.110"
 }
@@ -117,7 +117,7 @@ helm install api charts/api -f config/clinic-a/values-production.yaml
 
 **Internet (for installation):**
 - get.k3s.io (K3s installer)
-- github.com (Longhorn, MetalLB manifests)
+- github.com (cloud storage, MetalLB manifests)
 - Or use air-gapped installation
 
 ## Air-Gapped Installation
@@ -132,7 +132,7 @@ See: [Air-Gapped Guide](https://docs.k3s.io/installation/airgap) for offline bun
 - Check firewall rules
 
 **Storage issues:**
-- Ensure disks available for Longhorn
+- Ensure disks available for cloud storage
 - Check disk permissions
 
 **LoadBalancer pending:**

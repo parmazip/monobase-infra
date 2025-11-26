@@ -51,7 +51,7 @@ graph TB
         end
         
         subgraph "Infrastructure"
-            Longhorn[💾 Longhorn Storage]
+            cloud storage[💾 cloud storage Storage]
             ArgoCD[🔄 ArgoCD GitOps]
             ExtSecrets[🔐 External Secrets]
             CertMgr[🔒 cert-manager]
@@ -75,7 +75,7 @@ graph TB
     ExtSecrets -->|fetches| KMS
     ExtSecrets -.->|injects| Monobase API1
     Velero -.->|backups| PostgreSQL1
-    Longhorn -.->|provides storage| PostgreSQL1
+    cloud storage -.->|provides storage| PostgreSQL1
 ```
 
 ### Technology Stack
@@ -83,7 +83,7 @@ graph TB
 **Core (Always Deployed):**
 - Kubernetes 1.27+ (EKS, AKS, GKE, or self-hosted)
 - Envoy Gateway (Gateway API)
-- Longhorn (distributed storage)
+- cloud storage (distributed storage)
 - ArgoCD (GitOps)
 - External Secrets Operator (KMS integration)
 - cert-manager (TLS automation)
@@ -103,7 +103,7 @@ graph TB
 **NOT Included (Deliberately):**
 - ❌ Service Mesh (Istio/Linkerd) - Overkill for 3 services
 - ❌ Self-hosted Vault - Use cloud KMS instead
-- ❌ Rook-Ceph - Longhorn + MinIO simpler
+- ❌ Rook-Ceph - cloud storage + MinIO simpler
 
 ---
 
@@ -166,7 +166,7 @@ graph TB
         
         subgraph "Infrastructure (Shared)"
             NP[NetworkPolicies<br/>Namespace Isolation]
-            Storage[Longhorn<br/>Distributed Storage]
+            Storage[cloud storage<br/>Distributed Storage]
         end
     end
     
@@ -232,7 +232,7 @@ graph TB
         │ └──────┬──────┘ └────┬─────┘  ││
         │        │             │         ││
         │  ┌─────┴─────────────┴──────┐ ││
-        │  │   Longhorn Storage       │ ││
+        │  │   cloud storage Storage       │ ││
         │  │   - 3x replication       │ ││
         │  │   - Snapshots            │ ││
         │  │   - Encryption           │ ││
@@ -259,7 +259,7 @@ Browser → DNS → LoadBalancer → Gateway (443)
 **3. File Upload Flow:**
 ```
 Client → Monobase API → MinIO S3 API (9000)
-  → Longhorn PVC → Distributed storage across nodes
+  → Cloud Storage PVC → Cloud provider block storage
 ```
 
 **4. File Download Flow:**
@@ -324,11 +324,11 @@ spec:
 
 ## Storage Architecture
 
-### Longhorn Distributed Block Storage
+### cloud storage Distributed Block Storage
 
 ```
 ┌─────────────────────────────────────────┐
-│         Longhorn Storage Cluster        │
+│         cloud storage Storage Cluster        │
 │                                         │
 │  ┌────────┐  ┌────────┐  ┌────────┐   │
 │  │ Node 1 │  │ Node 2 │  │ Node 3 │   │
@@ -442,7 +442,7 @@ Explicit ALLOW rules:
 - Namespace-scoped permissions
 
 **Layer 4: Data (Encryption)**
-- At rest: Longhorn + PostgreSQL encryption
+- At rest: cloud storage + PostgreSQL encryption
 - In transit: TLS everywhere (cert-manager)
 - Backups: S3 + KMS encryption
 
@@ -461,7 +461,7 @@ Explicit ALLOW rules:
 ```
 ┌─────────────────────────────────────────┐
 │  Tier 1: Hourly Snapshots (Fast)        │
-│  - Storage: Local (Longhorn nodes)      │
+│  - Storage: Local (cloud storage nodes)      │
 │  - Retention: 72 hours                  │
 │  - Recovery: ~5 minutes                 │
 │  - Use: Quick rollback, recent issues   │
@@ -486,7 +486,7 @@ Explicit ALLOW rules:
 
 **Backup Methods:**
 
-1. **Longhorn Snapshots** - Volume-level, COW snapshots
+1. **cloud storage Snapshots** - Volume-level, COW snapshots
 2. **Velero Backups** - Kubernetes-native, application-aware
 3. **PostgreSQL dumps** - Application-level (optional)
 
@@ -551,7 +551,7 @@ Explicit ALLOW rules:
 | PostgreSQL | 3 | Replica set | <30s (auto-failover) |
 | MinIO | 6 | Erasure coding | 0s (2 node tolerance) |
 | Envoy Gateway | 2 | Anti-affinity | <1s (pod swap) |
-| Longhorn | 3 | Volume replication | 0s (auto-rebuild) |
+| cloud storage | 3 | Volume replication | 0s (auto-rebuild) |
 
 ### Update Strategy
 
@@ -582,8 +582,8 @@ Cluster
 ├── gateway-system (shared)
 │   └── shared-gateway (1 Gateway, HA: 2 replicas)
 │
-├── longhorn-system (shared)
-│   └── Longhorn components
+├── cloud-default-system (shared)
+│   └── cloud storage components
 │
 ├── external-secrets-system (shared)
 │   └── External Secrets Operator
@@ -661,7 +661,7 @@ Cluster
 |----------|-----|-----|-----------------|
 | Pod failure | 0s | 0 | Auto-restart + HA |
 | Node failure | <30s | 0 | Pod rescheduling |
-| AZ failure | <5min | 1h | Longhorn snapshot restore |
+| AZ failure | <5min | 1h | cloud storage snapshot restore |
 | Database corruption | <1h | 24h | Velero daily backup |
 | Cluster failure | <4h | 1w | Velero weekly + new cluster |
 | Region failure | <8h | 1w | Cross-region backup restore |
@@ -679,7 +679,7 @@ Cluster
 - **Action:** Pods rescheduled to healthy nodes
 - **Impact:** Brief degradation if node had replicas
 - **RTO:** 1-5 minutes
-- **Longhorn:** Rebuilds volume replicas automatically
+- **cloud storage:** Rebuilds volume replicas automatically
 
 **3. PostgreSQL Replica Failure:**
 - **Detection:** Replica set monitoring
@@ -708,7 +708,7 @@ Traffic increases → CPU >70% → HPA adds pods
 
 **Storage (via Volume Expansion):**
 ```
-Storage fills → Expand PVC → Longhorn expands volume
+Storage fills → Expand PVC → cloud storage expands volume
   → No downtime → More space available
 ```
 

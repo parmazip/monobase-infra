@@ -102,7 +102,7 @@ mc du myminio/api-files
 | Monobase API | 10 pods | PostgreSQL connections | Add PostgreSQL read replicas |
 | PostgreSQL | 5 nodes | Replication lag | Implement sharding |
 | MinIO | 16 nodes | Erasure coding | Use external S3 |
-| Storage | 5TB/node | Longhorn limit | Add nodes or use cloud storage |
+| Storage | 5TB/node | cloud storage limit | Add nodes or use cloud storage |
 
 ## Summary
 

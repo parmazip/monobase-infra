@@ -15,7 +15,7 @@ Complete backup procedures, restore operations, and disaster recovery plans.
 
 | Tier | Frequency | Retention | Storage | RTO | RPO | Use Case |
 |------|-----------|-----------|---------|-----|-----|----------|
-| **1** | Hourly | 72h | Longhorn (local) | 5 min | 1h | Quick rollback |
+| **1** | Hourly | 72h | cloud storage (local) | 5 min | 1h | Quick rollback |
 | **2** | Daily | 30d | S3 (off-cluster) | 1h | 24h | Recent recovery |
 | **3** | Weekly | 90d | S3 Glacier (archive) | 4h | 1w | Compliance, DR |
 
@@ -374,7 +374,7 @@ velero backup delete --selector backup-schedule=daily-full \\
 | Component | Backup Method | RTO | Recovery Steps |
 |-----------|--------------|-----|----------------|
 | Application Pods | None | 0s | Auto-restart, HA replicas |
-| PostgreSQL | Longhorn snapshot | 5 min | Restore from snapshot |
+| PostgreSQL | cloud storage snapshot | 5 min | Restore from snapshot |
 | PostgreSQL | Velero daily | 1h | Restore from daily backup |
 | Full Namespace | Velero daily | 1-2h | Full namespace restore |
 | Complete Cluster | Velero weekly | 4-8h | New cluster + restore |

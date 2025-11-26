@@ -197,7 +197,7 @@ postgresql:
     existingSecret: ""
   persistence:
     enabled: true
-    storageClass: longhorn
+    storageClass: ""
     size: 100Gi
 
 # Valkey (Redis-compatible cache) dependency configuration
@@ -207,7 +207,7 @@ valkey:
   master:
     persistence:
       enabled: true
-      storageClass: longhorn
+      storageClass: ""
       size: 8Gi
 
 # Mailpit dependency configuration (email testing for dev/staging)

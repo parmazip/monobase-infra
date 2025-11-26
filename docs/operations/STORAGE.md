@@ -1,15 +1,15 @@
 # Storage Operations Guide
 
-Longhorn and MinIO storage management, expansion, and troubleshooting.
+Cloud storage and MinIO object storage management.
 
 ## Quick Start: Choosing a Storage Provider
 
-**Use `cloud-default`** for most deployments - it's simpler and uses your cluster's native storage.
+**Use `cloud-default`** for most deployments - it uses your cluster's native storage.
 
 ### Configuration
 
 ```yaml
-# deployments/myclient/values-production.yaml
+# values/deployments/myclient-production.yaml
 global:
   storage:
     provider: cloud-default  # Recommended for cloud deployments
@@ -18,547 +18,373 @@ global:
 
 ### Provider Options
 
-**1. cloud-default (Recommended for Cloud)**
+**1. cloud-default (Recommended)**
 
 Uses cluster's default StorageClass:
 - AWS EKS → EBS CSI (gp2/gp3)
-- Azure AKS → Azure Disk CSI  
+- Azure AKS → Azure Disk CSI
 - GCP GKE → GCP Persistent Disk
+- DigitalOcean DOKS → DO Block Storage
 - No additional components to deploy!
 
-**Pros:** Simple, managed, native integration  
+**Pros:** Simple, managed, native integration
 **Cons:** Cloud-specific, not portable
 
-**2. longhorn (Recommended for On-Prem)**
+**2. Cloud-Specific Providers**
 
-Deploys Longhorn distributed storage.
-
-**Pros:** Cloud-agnostic, advanced features, on-prem support  
-**Cons:** Requires management, resource overhead
-
-**Use when:** On-premises, multi-cloud, need full control
+Explicitly use cloud provider's CSI driver:
+- `ebs-csi` - AWS EBS volumes
+- `azure-disk` - Azure managed disks
+- `gcp-pd` - GCP persistent disks
 
 **3. local-path (For k3d/kind Testing)**
 
 Uses local-path-provisioner.
 
-**Pros:** Simple, built-in to k3d/kind, perfect for testing  
+**Pros:** Simple, built-in to k3d/kind, perfect for testing
 **Cons:** Not HA, not for production
 
 **Use when:** Local development, CI/CD testing
 
 ### Provider Comparison
 
-| Provider | Best For | Complexity | Cost |
-|----------|----------|------------|------|
-| cloud-default | Cloud (EKS/AKS/GKE) | Low | Low |
-| longhorn | On-prem, multi-cloud | Medium | Medium |
-| local-path | k3d/kind testing | Low | Free |
+| Provider | Deployment | Management | Best For |
+|----------|-----------|------------|----------|
+| **cloud-default** | ✅ Auto | ☁️ Managed | Production (cloud) |
+| **ebs-csi** | ✅ Auto | ☁️ Managed | AWS EKS |
+| **azure-disk** | ✅ Auto | ☁️ Managed | Azure AKS |
+| **gcp-pd** | ✅ Auto | ☁️ Managed | GCP GKE |
+| **local-path** | ✅ Auto | 👤 Self | Dev/Testing |
 
 ---
 
-## Table of Contents
+## PostgreSQL Storage
 
-1. [Longhorn Operations](#longhorn-operations)
-2. [MinIO Operations](#minio-operations)
-3. [Volume Expansion](#volume-expansion)
-4. [Storage Monitoring](#storage-monitoring)
-5. [Troubleshooting](#troubleshooting)
+PostgreSQL uses PersistentVolumeClaims that are automatically created with the configured storage provider.
+
+### Configuration
+
+```yaml
+# values/deployments/myclient-production.yaml
+postgresql:
+  enabled: true
+  postgresql:
+    persistence:
+      enabled: true
+      storageClass: ""  # Uses global.storage.className
+      size: 20Gi
+```
+
+### Storage Classes
+
+#### Cloud Deployments
+
+The storage class is automatically selected based on your cluster:
+
+- **AWS EKS**: `gp3` (default) - GP3 SSD volumes
+- **Azure AKS**: `managed-premium` - Premium SSD
+- **GCP GKE**: `pd-ssd` - SSD persistent disks
+- **DigitalOcean**: `do-block-storage` - Block storage volumes
+
+#### Development
+
+- **k3d/kind**: `local-path` - Local host path storage
+
+### Volume Expansion
+
+Most cloud storage classes support volume expansion:
+
+```bash
+# Check if StorageClass allows expansion
+kubectl get storageclass -o custom-columns=NAME:.metadata.name,EXPANSION:.allowVolumeExpansion
+
+# Expand PostgreSQL volume (example: 20Gi → 50Gi)
+kubectl patch pvc data-postgresql-0 -n myclient-prod -p '{"spec":{"resources":{"requests":{"storage":"50Gi"}}}}'
+
+# Verify expansion
+kubectl get pvc data-postgresql-0 -n myclient-prod
+```
+
+**Note:** Volume expansion is non-disruptive and happens online. The pod does not need to be restarted.
 
 ---
 
-## Longhorn Deployment
+## MinIO Object Storage
 
-### Automatic GitOps Deployment
+MinIO provides S3-compatible object storage for files, images, and documents.
 
-When `longhorn.enabled: true` in `argocd/infrastructure/values.yaml`, the bootstrap process automatically deploys:
+### MinIO Deployment
 
-1. **Longhorn Operator** (sync wave 0) - Distributed storage system
-2. **StorageClass Resources** (sync wave 1) - Default storage classes
+MinIO is deployed per client/environment via values configuration:
 
-**StorageClasses created:**
-- `longhorn` (default) - 3 replicas, encrypted, for production data
-- `longhorn-fast` - 2 replicas, no encryption, for cache/temp data  
-- `longhorn-archive` - 1 replica, encrypted, for backups/archives
+```yaml
+# values/deployments/myclient-production.yaml
+minio:
+  enabled: true
 
-**Configuration files:**
-- Longhorn operator: `argocd/infrastructure/templates/longhorn.yaml`
-- StorageClasses: `infrastructure/storage/storageclass.yaml` (GitOps-managed)
+  # External Secrets for root credentials
+  externalSecrets:
+    enabled: true
+    secrets:
+      - remoteKey: myclient-prod-minio-root-password
+        generator:
+          generate: true
+          type: password
 
-### Manual Deployment (if not using GitOps)
+  # Bitnami MinIO subchart
+  minio:
+    mode: standalone
+    statefulset:
+      replicaCount: 1
 
-If deploying Longhorn manually outside of ArgoCD, see the Longhorn documentation.
+    persistence:
+      enabled: true
+      storageClass: ""  # Uses global.storage.className
+      size: 100Gi
 
-## Longhorn Operations
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        cpu: 1000m
+        memory: 2Gi
 
-### Access Longhorn UI
+    defaultBuckets: "monobase-files"
 
-```bash
-# Port-forward to Longhorn UI
-kubectl port-forward -n longhorn-system svc/longhorn-frontend 8080:80
-
-# Open browser
-open http://localhost:8080
+    # Gateway exposure
+    gateway:
+      enabled: true
+      hostname: ""  # Auto: minio.{global.domain}
 ```
 
-### Check Storage Status
+### MinIO Operations
+
+#### Access MinIO UI
+
+MinIO is exposed via HTTPRoute at `https://minio.{your-domain}`:
 
 ```bash
-# List all volumes
-kubectl get volumes -n longhorn-system
+# Get MinIO credentials
+kubectl get secret minio -n myclient-prod -o jsonpath='{.data.root-password}' | base64 -d
 
-# Check volume details
-kubectl describe volume pvc-<uuid> -n longhorn-system
-
-# Check node storage
-kubectl get nodes -n longhorn-system \\
-  -o custom-columns=NAME:.metadata.name,STORAGE:.status.conditions[?(@.type==\"Ready\")].status
+# Access UI
+open https://minio.myclient.com
 ```
 
-### Manual Snapshot
+Default credentials:
+- **Username**: `root`
+- **Password**: From External Secrets or Kubernetes Secret
+
+#### Create Buckets via mc CLI
 
 ```bash
-# Create snapshot via kubectl
-kubectl apply -f - <<EOF
-apiVersion: longhorn.io/v1beta2
-kind: Snapshot
-metadata:
-  name: postgresql-manual-snapshot
-  namespace: longhorn-system
-spec:
-  volume: pvc-postgresql-data
-  labels:
-    snapshot-type: manual
-EOF
-
-# Or via Longhorn UI:
-# Volumes → Select volume → Create Snapshot
-```
-
-### Manual Backup to S3
-
-```bash
-# Trigger backup via Longhorn UI
-# Volumes → Select volume → Create Backup
-
-# Or via kubectl
-kubectl apply -f - <<EOF
-apiVersion: longhorn.io/v1beta2
-kind: Backup
-metadata:
-  name: postgresql-manual-backup
-  namespace: longhorn-system
-spec:
-  snapshotName: postgresql-manual-snapshot
-  labels:
-    backup-type: manual
-EOF
-```
-
-### Restore from Backup
-
-```bash
-# Via Longhorn UI:
-# 1. Backup tab → Select backup → Restore
-# 2. Choose: Create new volume or restore to existing
-
-# Via kubectl (create new volume from backup):
-kubectl apply -f - <<EOF
-apiVersion: longhorn.io/v1beta2
-kind: Volume
-metadata:
-  name: postgresql-restored
-  namespace: longhorn-system
-spec:
-  fromBackup: s3://bucket/backups/backup-<id>
-  numberOfReplicas: 3
-  size: "100Gi"
-EOF
-
-# Create PVC for restored volume
-kubectl apply -f - <<EOF
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: postgresql-data-restored
-  namespace: myclient-prod
-spec:
-  storageClassName: longhorn
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 100Gi
-  volumeName: postgresql-restored
-EOF
-```
-
----
-
-## MinIO Operations
-
-### Access MinIO Console
-
-```bash
-# Port-forward to MinIO console
-kubectl port-forward -n myclient-prod svc/minio 9001:9001
-
-# Get credentials
-MINIO_USER=$(kubectl get secret minio-credentials -n myclient-prod \\
-  -o jsonpath='{.data.root-user}' | base64 -d)
-MINIO_PASS=$(kubectl get secret minio-credentials -n myclient-prod \\
-  -o jsonpath='{.data.root-password}' | base64 -d)
-
-echo "URL: http://localhost:9001"
-echo "User: $MINIO_USER"
-echo "Pass: $MINIO_PASS"
-```
-
-### MinIO CLI (mc) Operations
-
-```bash
-# Install mc client
+# Install mc (MinIO Client)
 brew install minio/stable/mc
 
 # Configure alias
-mc alias set myminio https://storage.myclient.com <access-key> <secret-key>
-
-# List buckets
-mc ls myminio
+mc alias set myclient https://minio.myclient.com root <password>
 
 # Create bucket
-mc mb myminio/new-bucket
+mc mb myclient/new-bucket
 
-# Set bucket policy (public read)
-mc policy set download myminio/api-files
+# List buckets
+mc ls myclient/
 
-# Monitor usage
-mc admin info myminio
+# Upload files
+mc cp ./file.pdf myclient/new-bucket/
 
-# Check healing status
-mc admin heal myminio
+# Set public policy
+mc anonymous set download myclient/new-bucket
 ```
 
-### MinIO Bucket Management
+#### Bucket Management via UI
+
+1. Navigate to `https://minio.myclient.com`
+2. Log in with root credentials
+3. Click **Buckets** → **Create Bucket**
+4. Configure bucket policies and lifecycle rules
+
+### MinIO Storage Expansion
+
+Expand MinIO storage the same way as PostgreSQL:
 
 ```bash
-# Create bucket with versioning
-mc mb myminio/versioned-bucket
-mc version enable myminio/versioned-bucket
+# Expand MinIO volume (example: 100Gi → 200Gi)
+kubectl patch pvc minio -n myclient-prod -p '{"spec":{"resources":{"requests":{"storage":"200Gi"}}}}'
 
-# Set lifecycle policy (auto-delete old versions)
-mc ilm add --expiry-days 90 myminio/versioned-bucket
-
-# Set encryption
-mc encrypt set sse-s3 myminio/encrypted-bucket
-
-# Monitor bucket usage
-mc du myminio/api-files
+# Verify expansion
+kubectl get pvc minio -n myclient-prod
 ```
 
----
+### MinIO Backup
 
-## Volume Expansion
-
-### Expand StatefulSet PVC (PostgreSQL, MinIO)
-
-**Automated Script:**
+MinIO data is backed up via Velero (if enabled):
 
 ```bash
-# See: scripts/resize-statefulset-storage.sh (Phase 6)
-./scripts/resize-statefulset-storage.sh \\
-  postgresql \\
-  myclient-prod \\
-  200Gi
+# Verify MinIO namespace is in Velero backup schedule
+kubectl get schedule -n velero infrastructure-daily -o yaml | grep -A 10 includedNamespaces
+
+# Trigger manual backup
+velero backup create minio-manual --include-namespaces myclient-prod --selector app.kubernetes.io/name=minio
 ```
 
-**Manual Process:**
+### MinIO Security
 
-```bash
-# 1. Check current size
-kubectl get pvc -n myclient-prod
+MinIO deployment includes:
 
-# 2. Edit each PVC (for StatefulSet, edit ALL PVCs)
-kubectl edit pvc postgresql-data-postgresql-0 -n myclient-prod
-# Change: storage: 100Gi → 200Gi
-
-kubectl edit pvc postgresql-data-postgresql-1 -n myclient-prod
-kubectl edit pvc postgresql-data-postgresql-2 -n myclient-prod
-
-# 3. Delete StatefulSet (keeps pods running!)
-kubectl delete statefulset postgresql -n myclient-prod --cascade=orphan
-
-# 4. Re-create StatefulSet with new size
-# Edit helm values or redeploy via ArgoCD
-
-# 5. Rolling restart to use new size
-kubectl rollout restart statefulset postgresql -n myclient-prod
-
-# 6. Verify expansion
-kubectl get pvc -n myclient-prod
-df -h  # Inside pod
-```
-
-### Expand Regular PVC (Simple)
-
-```bash
-# 1. Edit PVC
-kubectl edit pvc my-pvc -n myclient-prod
-# Change storage size
-
-# 2. Longhorn expands automatically
-# No pod restart needed!
-
-# 3. Verify
-kubectl get pvc my-pvc -n myclient-prod
-```
+- ✅ **Encrypted credentials** via External Secrets
+- ✅ **TLS termination** at Envoy Gateway
+- ✅ **NetworkPolicies** restricting access
+- ✅ **Pod Security Standards** enforced
+- ✅ **Read-only root filesystem** for container security
 
 ---
 
 ## Storage Monitoring
 
-### Longhorn Metrics
+### Check Storage Usage
 
 ```bash
-# Via Prometheus (if monitoring enabled)
-# Metrics available:
-# - longhorn_volume_actual_size_bytes
-# - longhorn_volume_capacity_bytes
-# - longhorn_volume_state
-# - longhorn_volume_robustness
-# - longhorn_node_storage_capacity_bytes
-# - longhorn_node_storage_usage_bytes
+# View all PVCs in namespace
+kubectl get pvc -n myclient-prod
 
-# Check via Grafana dashboard
-# Or query Prometheus directly
+# Detailed PVC information
+kubectl describe pvc data-postgresql-0 -n myclient-prod
+
+# Storage capacity
+kubectl get pv | grep myclient-prod
 ```
 
-### Storage Alerts
+### Cloud Provider Dashboards
 
-**Configure in Prometheus:**
+Monitor storage through your cloud provider:
 
-```yaml
-# See: infrastructure/monitoring/prometheus-rules.yaml
-
-# Alerts:
-- PersistentVolumeFillingUp (>80% full)
-- LonghornVolumeUnhealthy (degraded)
-- MinIODiskOffline
-- MinIOHighStorage (>80% used)
-```
-
-### Manual Storage Checks
-
-```bash
-# Check PVC usage
-kubectl exec -it postgresql-0 -n myclient-prod -- df -h
-
-# Check Longhorn node storage
-kubectl get nodes.longhorn.io -n longhorn-system \\
-  -o custom-columns=NAME:.metadata.name,CAPACITY:.status.diskStatus.*.storageMaximum,USED:.status.diskStatus.*.storageAvailable
-
-# Check MinIO usage
-mc du --depth 1 myminio
-```
+- **AWS**: CloudWatch → EBS metrics
+- **Azure**: Azure Monitor → Disk metrics
+- **GCP**: Cloud Monitoring → Persistent Disk metrics
+- **DigitalOcean**: Control Panel → Volumes
 
 ---
 
 ## Troubleshooting
 
-### Longhorn Issues
+### PVC Pending
 
-**Volume Degraded:**
+**Symptom**: PVC stuck in `Pending` state
 
 ```bash
-# Check replica status
-kubectl describe volume pvc-<id> -n longhorn-system
-
-# Common causes:
-# - Node down (replicas rebuilding)
-# - Disk full (add storage or clean up)
-# - Network issues (check node connectivity)
-
-# Force rebuild
-# Via Longhorn UI: Volume → Replica → Rebuild
+# Check PVC events
+kubectl describe pvc <pvc-name> -n <namespace>
 ```
 
-**Backup Failed:**
+**Common causes:**
+1. **No StorageClass**: Cluster doesn't have a default StorageClass
+   - Solution: Set `global.storage.className` explicitly
+2. **Quota exceeded**: Cloud provider storage quota reached
+   - Solution: Request quota increase from cloud provider
+3. **Zone mismatch**: PVC and pod in different availability zones
+   - Solution: Check node affinity and zone constraints
+
+### Volume Expansion Stuck
+
+**Symptom**: PVC shows `FileSystemResizePending`
 
 ```bash
-# Check backup target
-kubectl get settings.longhorn.io backup-target -n longhorn-system -o yaml
+# Check PVC status
+kubectl get pvc <pvc-name> -n <namespace>
 
-# Check credentials
-kubectl get secret longhorn-backup-credentials -n longhorn-system
-
-# Check S3 bucket access
-aws s3 ls s3://myclient-prod-backups/longhorn/
-
-# Test manual backup
-# Longhorn UI → Volume → Create Backup
+# Trigger filesystem resize by restarting pod
+kubectl rollout restart statefulset/<name> -n <namespace>
 ```
 
-**Snapshot Failed:**
+### MinIO Connection Issues
+
+**Symptom**: Applications can't connect to MinIO
 
 ```bash
-# Check recurring job
-kubectl get recurringjobs -n longhorn-system
-
-# Check job logs
-kubectl logs -l app=longhorn-manager -n longhorn-system | grep snapshot
-
-# Common issues:
-# - Snapshot space limit (increase snapshot-space-usage-limit)
-# - Too many snapshots (adjust retain count)
-```
-
-### MinIO Issues
-
-**Disk Offline:**
-
-```bash
-# Check MinIO pods
+# Check MinIO pod status
 kubectl get pods -n myclient-prod -l app.kubernetes.io/name=minio
 
-# Check PVCs
-kubectl get pvc -n myclient-prod -l app.kubernetes.io/name=minio
+# Check MinIO service
+kubectl get svc minio -n myclient-prod
 
-# Healing status
-mc admin heal myminio
-
-# Common causes:
-# - PVC not bound (check storage class)
-# - Node down (pods rescheduling)
-# - Disk full (expand PVCs)
+# Test connectivity
+kubectl run -it --rm debug --image=curlimages/curl --restart=Never -- \
+  curl -v http://minio.myclient-prod.svc.cluster.local:9000
 ```
 
-**Performance Issues:**
-
+**Check HTTPRoute:**
 ```bash
-# Check MinIO metrics
-mc admin info myminio
+# Verify MinIO HTTPRoute
+kubectl get httproute -n myclient-prod | grep minio
+kubectl describe httproute minio-httproute -n myclient-prod
+```
 
-# Increase replicas (more nodes)
-# Or increase resources per node
+### Storage Performance Issues
 
-# Check network (MinIO is network-intensive)
-kubectl exec -it minio-0 -n myclient-prod -- \\
-  iperf3 -c minio-1.minio.myclient-prod.svc.cluster.local
+**Cloud Storage Performance:**
+- **AWS EBS**: Upgrade from gp2 to gp3 for better performance/cost
+- **Azure Disk**: Use Premium SSD for production workloads
+- **GCP PD**: Use SSD persistent disks for databases
+
+**Monitoring:**
+```bash
+# Check disk I/O in pod
+kubectl exec -it postgresql-0 -n myclient-prod -- iostat -x 1 5
+
+# Cloud provider metrics
+# AWS: CloudWatch → EBS Volume IOPS
+# Azure: Azure Monitor → Disk IOPS
+# GCP: Cloud Monitoring → Disk ops/sec
 ```
 
 ---
 
 ## Best Practices
 
-### 1. Regular Maintenance
+### Storage Planning
 
-**Weekly:**
-- Review storage usage
-- Check for degraded volumes
-- Verify backups completing
+1. **Size appropriately**: Start with 2x expected data size
+2. **Enable expansion**: Verify StorageClass supports `allowVolumeExpansion`
+3. **Monitor usage**: Set up alerts at 70% capacity
+4. **Plan for growth**: Cloud storage can expand dynamically
 
-**Monthly:**
-- Test backup restore
-- Clean up old snapshots
-- Review storage capacity planning
+### Backup Strategy
 
-**Quarterly:**
-- Audit storage access
-- Review encryption keys
-- Performance tuning
+1. **PostgreSQL**:
+   - Tier 1: WAL archiving (if HA enabled)
+   - Tier 2: Velero namespace backup (daily)
+   - Tier 3: Cloud provider snapshots
 
-### 2. Capacity Planning
+2. **MinIO**:
+   - Tier 1: Velero backup (daily)
+   - Tier 2: MinIO bucket replication (optional)
+   - Tier 3: Application-level versioning
 
-**Monitor Growth:**
+### Cost Optimization
 
-```bash
-# Track storage usage over time
-# Via Grafana dashboard
+1. **Use appropriate tiers**:
+   - Production: SSD/Premium storage
+   - Staging: Standard/balanced storage
+   - Development: Local path storage
 
-# Estimate growth rate
-# Plan expansion when >70% full
+2. **Right-size volumes**: Don't over-provision unnecessarily
 
-# PostgreSQL: Plan for 2x growth per year
-# MinIO: Plan based on file upload rate
-```
+3. **Cleanup unused PVCs**: Delete PVCs when scaling down
 
-**Expansion Triggers:**
-- >70% used: Plan expansion
-- >80% used: Execute expansion
-- >90% used: Emergency expansion
+### Security
 
-### 3. Performance Optimization
-
-**Longhorn:**
-- Use `dataLocality: best-effort` for performance
-- Use SSD disks for production
-- Increase `storageOverProvisioningPercentage` for burst
-
-**MinIO:**
-- More nodes = better performance
-- Use SSD for cache
-- Enable compression (reduces storage)
-- Use CDN for public files
+1. **Encrypt at rest**: Enable cloud provider encryption
+2. **Access control**: Use RBAC and NetworkPolicies
+3. **Credential management**: Use External Secrets for MinIO credentials
+4. **Audit logging**: Enable cloud provider audit logs
 
 ---
 
-## Storage Cost Optimization
+## Related Documentation
 
-### Longhorn
-
-**Reduce Costs:**
-- Use 2 replicas for non-critical data (instead of 3)
-- Clean up old snapshots automatically
-- Use compression (if supported)
-- Archive old data to S3
-
-### MinIO
-
-**Reduce Costs:**
-- **Consider external S3 if:**
-  - >1TB data (economies of scale)
-  - Global distribution needed
-  - CDN integration required
-
-- **Keep self-hosted MinIO if:**
-  - <1TB data (cost-effective)
-  - No egress fees
-  - Full control needed
-  - Compliance requires on-prem
-
-**MinIO Lifecycle Policies:**
-
-```bash
-# Auto-delete old files
-mc ilm add --expiry-days 365 myminio/temporary-files
-
-# Transition to S3 Standard-IA
-# (requires external S3 replication)
-```
-
----
-
-## Summary
-
-**Longhorn:**
-- Distributed block storage
-- 3x replication for HA
-- Snapshots + S3 backups
-- Online expansion
-- Encryption support
-
-**MinIO:**
-- S3-compatible object storage
-- Erasure coding (EC:2)
-- 6 nodes for 1TB usable
-- Self-hosted or external S3
-- Presigned URLs via Gateway
-
-**Operations:**
-- Regular monitoring
-- Capacity planning
-- Backup verification
-- Performance tuning
-- Security audits
-
-For backup procedures, see [BACKUP-RECOVERY.md](BACKUP-RECOVERY.md).
+- [BACKUP_DR.md](BACKUP_DR.md) - 3-tier backup strategy
+- [SCALING-GUIDE.md](SCALING-GUIDE.md) - Storage scaling and HPA
+- [Architecture: Storage](../architecture/ARCHITECTURE.md#storage-architecture) - Storage design decisions
+- [Values Configuration](../reference/VALUES-CONFIGURATION.md) - Storage configuration parameters

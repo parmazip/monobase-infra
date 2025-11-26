@@ -45,12 +45,6 @@ variable "enable_ha" {
   default     = true
 }
 
-variable "install_longhorn" {
-  description = "Install Longhorn storage"
-  type        = bool
-  default     = true
-}
-
 variable "install_metallb" {
   description = "Install MetalLB load balancer"
   type        = bool

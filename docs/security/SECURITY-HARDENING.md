@@ -30,7 +30,7 @@ Production security hardening for compliant deployments.
 - [ ] API keys rotated regularly
 
 ### Encryption
-- [ ] Encryption at rest (Longhorn volumes)
+- [ ] Encryption at rest (cloud storage volumes)
 - [ ] Encryption in transit (TLS everywhere)
 - [ ] PostgreSQL encryption enabled
 - [ ] Backup encryption enabled (S3 + KMS)
@@ -303,19 +303,19 @@ kubectl create clusterrolebinding developers \\
 
 ### 1. Encryption at Rest
 
-**Longhorn Volume Encryption:**
+**cloud storage Volume Encryption:**
 
 ```bash
 # Enable encryption in StorageClass
-# See: infrastructure/longhorn/storageclass.yaml
+# See: infrastructure/cloud-default/storageclass.yaml
 
 parameters:
   encrypted: "true"
 
 # Create encryption passphrase
-kubectl create secret generic longhorn-crypto \\
+kubectl create secret generic cloud-default-crypto \\
   --from-literal=CRYPTO_KEY_VALUE=$(openssl rand -base64 32) \\
-  -n longhorn-system
+  -n cloud-default-system
 
 # Or use External Secrets (recommended)
 ```

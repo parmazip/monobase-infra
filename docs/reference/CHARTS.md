@@ -79,7 +79,7 @@ Global parameters are shared across all charts and must be configured in your de
 
 ### global.storage.provider
 - **Type:** string
-- **Options:** `cloud-default`, `longhorn`, `local-path`
+- **Options:** `cloud-default`, `cloud-default`, `local-path`
 - **Default:** `cloud-default`
 - **Description:** Storage provider (see `../operations/STORAGE.md`)
 
@@ -128,8 +128,8 @@ global:
     name: shared-gateway
     namespace: gateway-system
   storage:
-    provider: longhorn  # Or cloud-default for EKS/AKS/GKE
-    className: longhorn
+    provider: cloud-default  # Or cloud-default for EKS/AKS/GKE
+    className: cloud-default
 ```
 
 ## Development

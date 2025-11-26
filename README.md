@@ -45,7 +45,6 @@ monobase-infra/
 ├── infrastructure/          # ← CORE: K8s infrastructure components
 │   ├── envoy-gateway/
 │   ├── argocd/
-│   ├── longhorn/
 │   └── ...
 ├── argocd/                  # ← CORE: GitOps configuration
 ├── scripts/                 # ← CORE: Automation scripts
@@ -55,7 +54,7 @@ monobase-infra/
 ### What's Included ✅
 - **Cluster Provisioning (Optional)**: OpenTofu modules for AWS/Azure/GCP/on-prem/local
 - **Application Deployments**: Monobase API, API Worker, Monobase Account Helm charts
-- **Storage Infrastructure**: Longhorn distributed block storage
+- **Storage Infrastructure**: Cloud-native CSI drivers (EBS, Azure Disk, GCP PD)
 - **Networking & Routing**: Envoy Gateway with Gateway API
 - **Security Layer**: NetworkPolicies, Pod Security Standards, RBAC, encryption
 - **Backup & Disaster Recovery**: Velero 3-tier backups
@@ -202,7 +201,7 @@ vim values/deployments/acme-prod.yaml
 # Required changes:
 #   - global.domain: acme.com
 #   - global.namespace: acme-prod
-#   - global.storage.provider: cloud-default (EKS/AKS/GKE) or longhorn (on-prem)
+#   - global.storage.provider: cloud-default (EKS/AKS/GKE) or local-path (dev)
 #   - api.image.tag: "5.215.2" (pin version, not "latest")
 #   - account.image.tag: "1.0.0" (pin version, not "latest")
 
@@ -257,7 +256,7 @@ ArgoCD automatically discovers any YAML files in `values/deployments/` and deplo
 | API Backend | Monobase API | Core API service |
 | Frontend | Monobase Account | React/Vite frontend application |
 | Database | PostgreSQL 16.x | Primary datastore with replication |
-| Storage | Cloud-native or Longhorn | Persistent storage for databases |
+| Storage | Cloud-native storage | Persistent storage for databases |
 | GitOps | ArgoCD | Declarative deployments with web UI |
 | Secrets | External Secrets Operator | Cloud KMS sync (AWS/Azure/GCP) |
 
@@ -265,18 +264,16 @@ ArgoCD automatically discovers any YAML files in `values/deployments/` and deplo
 
 The infrastructure **automatically selects** the appropriate storage provider based on `global.storage.provider`:
 
-| Provider | Use When | StorageClass | Auto-Deploy Longhorn? |
-|----------|----------|--------------|----------------------|
-| `ebs-csi` | **AWS EKS** | `gp3` | ❌ No (uses native EBS) |
-| `azure-disk` | **Azure AKS** | `managed-premium` | ❌ No (uses Azure Disk) |
-| `gcp-pd` | **GCP GKE** | `pd-ssd` | ❌ No (uses GCP PD) |
-| `longhorn` | **On-prem/Bare-metal** | `longhorn` | ✅ Yes (self-hosted storage) |
-| `local-path` | **k3d/k3s dev** | `local-path` | ❌ No (local development) |
-| `cloud-default` | **Any cloud** | (cluster default) | ❌ No (uses provider default) |
+| Provider | Use When | StorageClass |
+|----------|----------|--------------|
+| `ebs-csi` | **AWS EKS** | `gp3` |
+| `azure-disk` | **Azure AKS** | `managed-premium` |
+| `gcp-pd` | **GCP GKE** | `pd-ssd` |
+| `local-path` | **k3d/k3s dev** | `local-path` |
+| `cloud-default` | **Any cloud** | (cluster default) |
 
 **Recommendation:**
-- **Cloud deployments** (EKS/AKS/GKE): Use native CSI drivers (`ebs-csi`, `azure-disk`, `gcp-pd`)
-- **On-premises/bare-metal**: Use `longhorn` for distributed block storage
+- **Cloud deployments** (EKS/AKS/GKE/DOKS): Use native CSI drivers or `cloud-default`
 - **Development**: Use `local-path` for simplicity
 
 ### Optional Add-On Components
@@ -295,7 +292,7 @@ The infrastructure **automatically selects** the appropriate storage provider ba
 ```
 Internet → Envoy Gateway (shared, HA) → HTTPRoutes (per client/env) → Applications
                                                                       ↓
-                                                            PostgreSQL + Longhorn Storage
+                                                            PostgreSQL + Cloud Storage
                                                             MinIO (optional)
                                                             Valkey (optional)
 ```
@@ -317,7 +314,6 @@ monobase-infra/                   # Base template repository
 │   └── account/                # Monobase Account frontend chart
 │
 ├── infrastructure/               # Infrastructure manifests & configs
-│   ├── longhorn/                 # Block storage
 │   ├── envoy-gateway/            # Gateway API
 │   ├── argocd/                   # GitOps
 │   ├── external-secrets-operator/ # Secrets management
@@ -351,7 +347,7 @@ monobase-infra/                   # Base template repository
 - [GitOps with ArgoCD](docs/architecture/GITOPS-ARGOCD.md) - App-of-Apps pattern
 - [Gateway API](docs/architecture/GATEWAY-API.md) - Envoy Gateway, HTTPRoutes
 - [Multi-Domain Gateway](docs/architecture/MULTI-DOMAIN-GATEWAY.md) - Client custom domains, certificate management
-- [Storage](docs/architecture/STORAGE.md) - Longhorn, cloud CSI drivers
+- [Storage](docs/architecture/STORAGE.md) - Cloud CSI drivers
 
 **⚙️ Operations:**
 - [Certificate Management](docs/operations/CERTIFICATE-MANAGEMENT.md) - TLS certificates, client domains
@@ -387,7 +383,7 @@ git push origin main
 
 - **NetworkPolicies** - Default-deny, allow-specific traffic patterns
 - **Pod Security Standards** - Restricted security profile enforced
-- **Encryption at Rest** - PostgreSQL encryption, Longhorn volume encryption
+- **Encryption at Rest** - PostgreSQL encryption, cloud storage encryption
 - **Encryption in Transit** - TLS everywhere via cert-manager
 - **RBAC** - Least-privilege service accounts
 - **Secrets Management** - Never commit secrets, use External Secrets + KMS

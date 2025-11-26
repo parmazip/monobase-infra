@@ -9,13 +9,13 @@ Cluster specifications and sizing guide for Monobase Infrastructure.
 **Nodes:** 3 worker nodes
 **CPU:** 4 cores per node (12 total)
 **Memory:** 16GB per node (48GB total)
-**Storage:** 100GB per node (for system + Longhorn)
+**Storage:** 100GB per node (for system + cloud storage)
 
 **Workload:**
 - Monobase API (2 replicas)
 - Monobase Account (2 replicas)
 - PostgreSQL (3 replicas)
-- Longhorn, Gateway, ArgoCD, External Secrets
+- cloud storage, Gateway, ArgoCD, External Secrets
 
 **Total Resource Usage:**
 - ~7 CPU cores
@@ -29,7 +29,7 @@ Cluster specifications and sizing guide for Monobase Infrastructure.
 **Nodes:** 5 worker nodes
 **CPU:** 8 cores per node (40 total)
 **Memory:** 32GB per node (160GB total)
-**Storage:** 500GB per node (for Longhorn pool)
+**Storage:** 500GB per node (for cloud storage pool)
 
 **Workload:**
 - All core components
@@ -92,7 +92,7 @@ Cluster specifications and sizing guide for Monobase Infrastructure.
 
 ## Storage Requirements
 
-### Longhorn Pool
+### cloud storage Pool
 - **Minimum:** 100GB per node
 - **Recommended:** 500GB per node
 - **Type:** SSD preferred

@@ -154,7 +154,7 @@ spec:
             description: "API has been unreachable for 2+ minutes"
 
 ---
-# Storage Alerts - Longhorn & PVCs
+# Storage Alerts - PVCs
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:

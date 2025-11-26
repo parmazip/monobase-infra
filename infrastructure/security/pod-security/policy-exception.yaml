@@ -5,16 +5,15 @@
 # that cannot comply with the restricted Pod Security Standard
 
 ---
-# Example: Exception for Longhorn (requires privileged mode)
-# Note: Longhorn is deployed in longhorn-system namespace, which should have
-# a less restrictive PSS level (baseline or privileged)
+# Example: Exception for CSI drivers (requires privileged mode)
+# Note: CSI drivers are typically deployed in kube-system or a dedicated namespace
 
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: longhorn-system
+  name: csi-driver-system
   labels:
-    # Longhorn requires privileged mode for device management
+    # CSI drivers require privileged mode for device management
     pod-security.kubernetes.io/enforce: privileged
     pod-security.kubernetes.io/audit: privileged
     pod-security.kubernetes.io/warn: privileged
@@ -38,7 +37,7 @@ metadata:
 # When to Use Exceptions
 
 # ✅ System Components:
-# - CSI drivers (Longhorn, EBS CSI, etc.)
+# - CSI drivers (EBS CSI, Azure Disk CSI, GCP PD CSI)
 # - Network plugins (Calico, Cilium)
 # - Monitoring agents (node exporters)
 # - Log forwarders (Fluent Bit)
@@ -60,42 +59,23 @@ metadata:
 
 # Example Documentation:
 #
-# Exception: Longhorn in longhorn-system namespace
+# Exception: EBS CSI Driver in kube-system namespace
 # Reason: Requires privileged mode for block device management
 # Cannot Meet: runAsNonRoot (needs root for device access)
 # Compensating Controls:
-#   - Isolated namespace (longhorn-system)
+#   - Isolated namespace (kube-system)
 #   - NetworkPolicies restrict traffic
 #   - RBAC limits service account permissions
-#   - Regular security updates applied
+#   - Regular security updates from AWS
 # Removal Plan: None - inherent requirement of CSI driver
 # Risk: LOW - isolated, audited, necessary for functionality
 
 ---
 # Audit Exception Usage
 
-# List all namespaces with non-restricted PSS
-# kubectl get namespaces -o json | \
-#   jq -r '.items[] | select(.metadata.labels."pod-security.kubernetes.io/enforce" != "restricted") | .metadata.name'
+# Regularly review exceptions:
+# kubectl get namespace -o custom-columns=\
+#   NAME:.metadata.name,\
+#   ENFORCE:.metadata.labels.pod-security\.kubernetes\.io/enforce
 
-# Expected exceptions:
-# - kube-system (privileged)
-# - longhorn-system (privileged)
-# - envoy-gateway-system (baseline)
-# - cert-manager (baseline)
-# - external-secrets-system (baseline)
-
-# All client namespaces should be: restricted ✅
-
----
-# HIPAA Compliance Note
-
-# For HIPAA compliance:
-# - Document all PSS exceptions in System Security Plan
-# - Justify why restricted profile cannot be used
-# - Implement compensating controls
-# - Regular security reviews of excepted workloads
-# - Include in annual risk assessment
-
-# Client application namespaces MUST use restricted profile
-# No exceptions allowed for PHI-handling workloads
+# Namespaces NOT using "restricted" should be reviewed

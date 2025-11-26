@@ -149,7 +149,7 @@ Choose the right module based on your deployment target:
 | **Multi-Tenant** | ✅ | ✅ | ✅ | ✅ | ⚠️ Testing only |
 | **HIPAA/PHI Ready** | ✅ | ✅ | ✅ | ✅ | ❌ |
 | **Workload Identity** | IRSA | Workload Identity | Workload Identity | ❌ | ❌ |
-| **Storage** | EBS CSI | Azure Disk | GCP PD | Longhorn/Local | Local |
+| **Storage** | EBS CSI | Azure Disk | GCP PD | cloud storage/Local | Local |
 | **LoadBalancer** | ELB/ALB | Azure LB | GCP LB | MetalLB | Host ports |
 
 ---
@@ -395,7 +395,7 @@ tofu apply
 # - Install K3s on all servers
 # - Configure HA with embedded etcd
 # - Install MetalLB for LoadBalancer
-# - Setup Longhorn for storage
+# - Setup cloud storage for storage
 
 # 5. Get kubeconfig
 tofu output -raw kubeconfig > ~/.kube/clinic-prod

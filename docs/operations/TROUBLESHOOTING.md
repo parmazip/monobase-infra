@@ -65,11 +65,11 @@ curl -v https://api.myclient.com
 ```bash
 # PVC stuck Pending
 kubectl describe pvc postgresql-data -n myclient-prod
-# Check: StorageClass exists, Longhorn healthy
+# Check: StorageClass exists, cloud storage healthy
 
 # Volume degraded
-kubectl get volumes.longhorn.io -n longhorn-system
-# Check Longhorn UI for details
+kubectl get volumes.cloud-default.io -n cloud-default-system
+# Check cloud storage UI for details
 ```
 
 ### Backup Failures
@@ -102,8 +102,8 @@ kubectl get pods -n myclient-prod
 # 3. If Gateway down, restart
 kubectl rollout restart deployment -n gateway-system
 
-# 4. If database down, check Longhorn
-kubectl get pods -n longhorn-system
+# 4. If database down, check cloud storage
+kubectl get pods -n cloud-default-system
 ```
 
 ### Roll Back Deployment

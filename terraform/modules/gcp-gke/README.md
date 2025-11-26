@@ -261,7 +261,7 @@ This module creates the Kubernetes cluster. After provisioning:
 1. **Configure kubectl** using the `kubeconfig` output
 2. **Deploy infrastructure** using Monobase charts:
    - PostgreSQL
-   - Longhorn or GCP Persistent Disk storage
+   - cloud storage or GCP Persistent Disk storage
    - External Secrets (with GCP Secret Manager)
    - Gateway API (Envoy Gateway)
 3. **Deploy applications** using Monobase charts:

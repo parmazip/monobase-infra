@@ -31,7 +31,7 @@ argocd/
 │       ├── envoy-gateway.yaml            # Gateway API (Wave 0)
 │       ├── external-secrets.yaml          # Secret management (Wave 0)
 │       ├── velero.yaml                   # Backups (Wave 0)
-│       ├── longhorn.yaml                 # Storage (Wave 0, optional)
+│       ├── cloud-default.yaml                 # Storage (Wave 0, optional)
 │       ├── kyverno.yaml                  # Policy engine (Wave 0, optional)
 │       ├── kyverno-policies.yaml         # Policies (Wave 1, optional)
 │       ├── falco.yaml                    # Runtime security (Wave 0, optional)
@@ -89,7 +89,7 @@ git push
 | envoy-gateway | 0 | ✅ Yes | Gateway API implementation |
 | external-secrets | 0 | ✅ Yes | Secret management |
 | velero | 0 | ✅ Yes | Backup and disaster recovery |
-| longhorn | 0 | ❌ No | Distributed block storage |
+| cloud-default | 0 | ❌ No | Distributed block storage |
 | kyverno | 0 | ❌ No | Policy engine |
 | kyverno-policies | 1 | ❌ No | Policy definitions |
 | falco | 0 | ❌ No | Runtime security monitoring |
@@ -168,8 +168,8 @@ Sync waves control deployment order. ArgoCD waits for each wave to be healthy be
 Edit `argocd/infrastructure/values.yaml`:
 
 ```yaml
-# Enable Longhorn storage
-longhorn:
+# Enable cloud storage storage
+cloud-default:
   enabled: true
   version: 1.6.0
 

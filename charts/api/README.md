@@ -190,7 +190,7 @@ The API chart includes PostgreSQL as a dependency for data persistence.
 
 ### postgresql.persistence.storageClass
 - **Type:** string
-- **Default:** `longhorn`
+- **Default:** `cloud-default`
 
 ### postgresql.persistence.size
 - **Type:** string

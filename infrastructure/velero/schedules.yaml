@@ -22,7 +22,6 @@ spec:
       - cert-manager
       - envoy-gateway-system
       - external-secrets-system
-      - longhorn-system
       - velero
       - monitoring
       - kube-system

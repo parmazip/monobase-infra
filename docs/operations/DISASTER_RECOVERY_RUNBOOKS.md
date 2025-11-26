@@ -61,7 +61,7 @@ curl https://api.myclient.com/health
 # (Use same cloud provider for S3 access)
 
 # 2. Deploy core infrastructure
-kubectl apply -f infrastructure/longhorn/
+kubectl apply -f infrastructure/cloud-default/
 kubectl apply -f infrastructure/envoy-gateway/
 kubectl apply -f infrastructure/external-secrets-operator/
 kubectl apply -f infrastructure/cert-manager/
@@ -181,7 +181,7 @@ kubectl logs -f deployment/api -n myclient-prod
 ## Backup Strategy (3-Tier)
 
 **Tier 1: Hourly Snapshots (Fast Recovery)**
-- Storage: Longhorn local
+- Storage: cloud storage local
 - Retention: 72 hours
 - RTO: 5 minutes
 - RPO: 1 hour

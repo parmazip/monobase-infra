@@ -33,7 +33,7 @@ If you're deploying healthcare applications handling Protected Health Informatio
   - Configure: Application-level session management
 
 - [ ] **Encryption and Decryption (Addressable)**
-  - ✅ Encryption at rest (Longhorn, PostgreSQL)
+  - ✅ Encryption at rest (cloud storage, PostgreSQL)
   - ✅ Encryption in transit (TLS everywhere)
   - ✅ KMS for key management
   - Location: `infrastructure/security/encryption/`
@@ -179,7 +179,7 @@ If you're deploying healthcare applications handling Protected Health Informatio
   - ✅ 3-tier backup strategy implemented
   - ✅ Automated schedules
   - ✅ Monthly restore testing
-  - Location: `infrastructure/velero/`, `infrastructure/longhorn/`
+  - Location: `infrastructure/velero/`, `infrastructure/cloud-default/`
 
 - [ ] **Disaster Recovery Plan (Required)**
   - ✅ DR procedures documented
@@ -229,7 +229,7 @@ If you're deploying healthcare applications handling Protected Health Informatio
 
 - [ ] **Disposal (Required)**
   - ✅ PVC deletion removes data
-  - ✅ Longhorn secure erase supported
+  - ✅ cloud storage secure erase supported
   - Document: Data disposal procedures
 
 - [ ] **Media Re-use (Required)**
@@ -242,7 +242,7 @@ If you're deploying healthcare applications handling Protected Health Informatio
 
 ### Infrastructure (Template Provides)
 
-- [x] Encryption at rest (Longhorn, PostgreSQL)
+- [x] Encryption at rest (cloud storage, PostgreSQL)
 - [x] Encryption in transit (TLS everywhere)
 - [x] Access controls (RBAC, NetworkPolicies)
 - [x] Audit logging (enabled and configured)
@@ -379,7 +379,7 @@ kubectl delete gateway shared-gateway -n gateway-system  # Stop all traffic
    # Generate compliance report
    
    # 1. Encryption status
-   kubectl get storageclass longhorn -o yaml | grep encrypted
+   kubectl get storageclass cloud-default -o yaml | grep encrypted
    
    # 2. NetworkPolicy list
    kubectl get networkpolicy -A -o yaml

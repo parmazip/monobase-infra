@@ -163,14 +163,14 @@ helm install api charts/api -f config/client-a/values-production.yaml
 
 ### Install Storage (Optional)
 
-DOKS includes DigitalOcean Block Storage CSI driver by default. To use Longhorn (for on-cluster distributed storage):
+DOKS includes DigitalOcean Block Storage CSI driver by default. To use cloud storage (for on-cluster distributed storage):
 
 ```bash
-# Install Longhorn
-kubectl apply -f https://raw.githubusercontent.com/longhorn/longhorn/v1.5.1/deploy/longhorn.yaml
+# Install cloud storage
+kubectl apply -f https://raw.githubusercontent.com/cloud-default/cloud-default/v1.5.1/deploy/cloud-default.yaml
 
 # Set as default storage class
-kubectl patch storageclass longhorn -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+kubectl patch storageclass cloud-default -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 kubectl patch storageclass do-block-storage -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
 ```
 
@@ -255,7 +255,7 @@ This module creates the Kubernetes cluster. After provisioning:
 1. **Configure kubectl** using the `kubeconfig` output
 2. **Deploy infrastructure** using Monobase charts:
    - PostgreSQL
-   - Longhorn (or use DO Block Storage)
+   - cloud storage (or use DO Block Storage)
    - External Secrets (with DO API token)
    - Gateway API (Envoy Gateway)
 3. **Deploy applications** using Monobase charts:
