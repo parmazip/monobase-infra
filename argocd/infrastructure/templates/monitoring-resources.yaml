@@ -27,11 +27,11 @@ spec:
       values: |
         namespace: {{ .Values.monitoring.namespace | default "monitoring" }}
         dashboards:
-          enabled: {{ .Values.monitoring.dashboards.enabled | default true }}
+          enabled: {{ .Values.monitoring.enabled | default true }}
         rules:
-          enabled: {{ .Values.monitoring.rules.enabled | default true }}
+          enabled: {{ .Values.monitoring.enabled | default true }}
         serviceMonitors:
-          enabled: {{ .Values.monitoring.serviceMonitors.enabled | default true }}
+          enabled: {{ .Values.monitoring.enabled | default true }}
   
   destination:
     server: https://kubernetes.default.svc
