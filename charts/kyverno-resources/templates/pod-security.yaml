@@ -1,3 +1,4 @@
+{{- if .Values.policies.podSecurity.enabled }}
 # Kyverno Policy: Pod Security Standards (Restricted Profile)
 # Enforces Kubernetes Pod Security Standards at the highest security level
 
@@ -15,7 +16,7 @@ metadata:
       All pods must run as non-root, drop all capabilities, use seccomp,
       and prevent privilege escalation.
 spec:
-  validationFailureAction: enforce  # Change to "audit" for testing
+  validationFailureAction: {{ .Values.policies.podSecurity.validationFailureAction | default "enforce" }}
   background: true  # Also check existing resources
 
   rules:
@@ -158,12 +159,13 @@ spec:
       deny:
         conditions:
           any:
-          - key: "{{ request.object.spec.volumes[].hostPath || `[]` | length(@) }}"
+          - key: "{{ "{{" }} request.object.spec.volumes[].hostPath || `[]` | length(@) {{ "}}" }}"
             operator: GreaterThan
             value: 0
-          - key: "{{ request.object.spec.volumes[].gcePersistentDisk || `[]` | length(@) }}"
+          - key: "{{ "{{" }} request.object.spec.volumes[].gcePersistentDisk || `[]` | length(@) {{ "}}" }}"
             operator: GreaterThan
             value: 0
-          - key: "{{ request.object.spec.volumes[].awsElasticBlockStore || `[]` | length(@) }}"
+          - key: "{{ "{{" }} request.object.spec.volumes[].awsElasticBlockStore || `[]` | length(@) {{ "}}" }}"
             operator: GreaterThan
             value: 0
+{{- end }}

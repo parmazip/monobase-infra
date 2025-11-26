@@ -18,14 +18,20 @@ spec:
   source:
     repoURL: {{ .Values.argocd.repoURL }}
     targetRevision: {{ .Values.argocd.targetRevision | default "main" }}
-    path: infrastructure/security/falco/rules
-    directory:
-      recurse: false
-      include: '{api-rules.yaml,database-rules.yaml}'
+    path: charts/falco-resources
+    helm:
+      releaseName: falco-resources
+      values: |
+        namespace: {{ .Values.falco.namespace | default "falco" }}
+        rules:
+          api:
+            enabled: {{ .Values.falco.rules.api.enabled | default true }}
+          database:
+            enabled: {{ .Values.falco.rules.database.enabled | default true }}
 
   destination:
     server: https://kubernetes.default.svc
-    namespace: falco
+    namespace: {{ .Values.falco.namespace | default "falco" }}
 
   syncPolicy:
     automated:
