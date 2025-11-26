@@ -14,8 +14,8 @@ values/
 ├── infrastructure/         # Infrastructure configuration
 │   └── main.yaml          # Main infrastructure config (ArgoCD, cert-manager, external-dns, gateway, etc.)
 └── deployments/           # Application deployment configurations
-    ├── parmazip-staging.yaml    # Example staging environment
-    └── parmazip-production.yaml # Example production environment
+    ├── acme-staging.yaml    # Example staging environment
+    └── acme-production.yaml # Example production environment
 ```
 
 ## Usage
@@ -73,7 +73,7 @@ To add a new client deployment:
 
 Example:
 ```bash
-cp values/deployments/parmazip-staging.yaml values/deployments/newclient-staging.yaml
+cp values/deployments/acme-staging.yaml values/deployments/newclient-staging.yaml
 # Edit values/deployments/newclient-staging.yaml
 git add values/deployments/newclient-staging.yaml
 git commit -m "feat: add newclient staging deployment"

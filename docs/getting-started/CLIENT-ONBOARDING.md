@@ -24,8 +24,8 @@ cd YOUR-FORK
 
 ```bash
 # Create deployment configuration files from examples
-cp values/deployments/parmazip-production.yaml values/deployments/myclient-prod.yaml
-cp values/deployments/parmazip-staging.yaml values/deployments/myclient-staging.yaml
+cp values/deployments/acme-production.yaml values/deployments/myclient-prod.yaml
+cp values/deployments/acme-staging.yaml values/deployments/myclient-staging.yaml
 ```
 
 ## Step 3: Customize Configuration

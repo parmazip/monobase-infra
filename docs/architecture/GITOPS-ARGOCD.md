@@ -63,7 +63,7 @@ argocd/
 # 3. ApplicationSet (per-client auto-discovery)
 
 # Step 2: Add client/env configurations
-cp values/deployments/parmazip-production.yaml values/deployments/myclient-prod.yaml
+cp values/deployments/acme-production.yaml values/deployments/myclient-prod.yaml
 vim values/deployments/myclient-prod.yaml  # Edit domain, namespace, etc.
 git add values/deployments/myclient-prod.yaml
 git commit -m "feat: add myclient-prod deployment"
@@ -127,7 +127,7 @@ git push
 ```bash
 # Add new client
 # Create values/deployments/newclient-prod.yaml
-cp values/deployments/parmazip-production-base.yaml values/deployments/newclient-prod.yaml
+cp values/deployments/acme-production-base.yaml values/deployments/newclient-prod.yaml
 vim values/deployments/newclient-prod.yaml
 git add values/deployments/newclient-prod.yaml && git commit -m "Add newclient-prod" && git push
 # ✓ ArgoCD auto-creates all Applications for newclient-prod
@@ -214,7 +214,7 @@ argocd app get infrastructure
 
 ```bash
 # Create values/deployments/newclient-staging.yaml
-cp values/deployments/parmazip-staging-base.yaml values/deployments/newclient-staging.yaml
+cp values/deployments/acme-staging-base.yaml values/deployments/newclient-staging.yaml
 
 # Edit values
 vim values/deployments/newclient-staging.yaml

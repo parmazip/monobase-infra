@@ -133,7 +133,7 @@ cd monobase-infra
 
 ```bash
 # 3. Create client configuration from example
-cp values/deployments/parmazip-production.yaml values/deployments/acme-prod.yaml
+cp values/deployments/acme-production.yaml values/deployments/acme-prod.yaml
 
 # 4. Edit configuration
 vim values/deployments/acme-prod.yaml
@@ -194,7 +194,7 @@ cd monobase-infra
 ./scripts/bootstrap.sh
 
 # 5. Create client configuration
-cp values/deployments/parmazip-production.yaml values/deployments/acme-prod.yaml
+cp values/deployments/acme-production.yaml values/deployments/acme-prod.yaml
 
 # 6. Edit configuration
 vim values/deployments/acme-prod.yaml
@@ -219,23 +219,23 @@ git push
 All configuration is consolidated in the `values/` directory:
 
 **Reference Examples:**
-- `values/deployments/parmazip-production.yaml` - Complete production configuration (HA, backups, security)
-- `values/deployments/parmazip-staging.yaml` - Complete staging configuration (single replicas, Mailpit enabled)
+- `values/deployments/acme-production.yaml` - Complete production configuration (HA, backups, security)
+- `values/deployments/acme-staging.yaml` - Complete staging configuration (single replicas, Mailpit enabled)
 
 **Your Client Config:**
-1. Copy the appropriate example: `cp values/deployments/parmazip-production.yaml values/deployments/yourclient-{env}.yaml`
+1. Copy the appropriate example: `cp values/deployments/acme-production.yaml values/deployments/yourclient-{env}.yaml`
 2. Edit the new file to change required values (domain, namespace, image tags)
 3. Customize as needed (resources, replicas, optional components)
 
 **Example:**
 ```bash
 # Create production deployment
-cp values/deployments/parmazip-production.yaml values/deployments/acme-prod.yaml
+cp values/deployments/acme-production.yaml values/deployments/acme-prod.yaml
 vim values/deployments/acme-prod.yaml
 # Change: domain, namespace, image tags, backup bucket
 
 # Create staging deployment
-cp values/deployments/parmazip-staging.yaml values/deployments/acme-staging.yaml
+cp values/deployments/acme-staging.yaml values/deployments/acme-staging.yaml
 vim values/deployments/acme-staging.yaml
 # Change: domain, namespace
 
