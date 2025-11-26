@@ -16,13 +16,13 @@
 # - Update client: Edit values/deployments/clienta-prod.yaml → git push
 # - ArgoCD automatically detects changes and syncs
 #
-# This is deployed ONCE during cluster bootstrap. After that, everything is Git-driven.
+# This is deployed via the bootstrap Helm chart. After that, everything is Git-driven.
 
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
   name: monobase-auto-discover
-  namespace: argocd
+  namespace: {{ .Values.argocd.namespace | default "argocd" }}
 spec:
   # Enable Go template support for string manipulation
   goTemplate: true
@@ -35,8 +35,8 @@ spec:
   generators:
     # Git Files Generator: Scans values/deployments/*.yaml files
     - git:
-        repoURL: https://github.com/parmazip/monobase-infra.git
-        revision: HEAD
+        repoURL: {{ .Values.argocd.repoURL | required "argocd.repoURL is required" }}
+        revision: {{ .Values.argocd.targetRevision | default "HEAD" }}
         files:
           # Include: scan all YAML files in values/deployments/
           - path: "values/deployments/*.yaml"
@@ -46,14 +46,14 @@ spec:
     metadata:
       # Application name: {filename-without-extension}-root
       # e.g., "clienta-prod-root", "clientb-staging-root"
-      name: '{{.path.filename | trimSuffix ".yaml"}}-root'
-      namespace: argocd
+      name: '{{"{{"}} .path.filename | trimSuffix ".yaml" {{"}}"}}-root'
+      namespace: {{ .Values.argocd.namespace | default "argocd" }}
       labels:
-        client-env: '{{.path.filename | trimSuffix ".yaml"}}'
+        client-env: '{{"{{"}} .path.filename | trimSuffix ".yaml" {{"}}"}}'
         managed-by: applicationset
       annotations:
         # Link back to config file
-        config-path: '{{.path.path}}/{{.path.filename}}'
+        config-path: '{{"{{"}} .path.path {{"}}"}}/{{"{{"}} .path.filename {{"}}"}}'
       finalizers:
         - resources-finalizer.argocd.argoproj.io
 
@@ -62,28 +62,28 @@ spec:
 
       source:
         # Point to this Git repository
-        repoURL: https://github.com/parmazip/monobase-infra.git
-        targetRevision: HEAD
-        path: argocd/applications
+        repoURL: {{ .Values.argocd.repoURL }}
+        targetRevision: {{ .Values.argocd.targetRevision | default "HEAD" }}
+        path: charts/argocd-applications
 
         # Use Helm to render application templates
         helm:
           # Value file is the discovered file itself
           # e.g., values/deployments/clienta-prod.yaml
           valueFiles:
-            - '../../{{.path.path}}/{{.path.filename}}'
+            - '../../{{"{{"}} .path.path {{"}}"}}/{{"{{"}} .path.filename {{"}}"}}'
           # Inject repoURL from bootstrap (single source of truth)
           values: |
             argocd:
-              repoURL: https://github.com/parmazip/monobase-infra.git
-              targetRevision: HEAD
+              repoURL: {{ .Values.argocd.repoURL }}
+              targetRevision: {{ .Values.argocd.targetRevision | default "HEAD" }}
 
       destination:
         # Deploy to the same cluster
-        server: https://kubernetes.default.svc
+        server: {{ .Values.argocd.clusterServer | default "https://kubernetes.default.svc" }}
         # Namespace matches filename (without extension)
         # e.g., clienta-prod.yaml → clienta-prod namespace
-        namespace: '{{.path.filename | trimSuffix ".yaml"}}'
+        namespace: '{{"{{"}} .path.filename | trimSuffix ".yaml" {{"}}"}}'
 
       syncPolicy:
         # Automated sync: Git push → automatic deployment
@@ -115,8 +115,10 @@ spec:
 
 # Usage:
 #
-# Deploy this ApplicationSet ONCE during cluster bootstrap:
-#   kubectl apply -f argocd/bootstrap/applicationset-auto-discover.yaml
+# Deploy this bootstrap chart ONCE during cluster bootstrap:
+#   helm upgrade --install argocd-bootstrap charts/argocd-bootstrap \
+#     --namespace argocd \
+#     --values values/infrastructure/main.yaml
 #
 # After that, just manage deployments via Git:
 #

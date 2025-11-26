@@ -79,7 +79,7 @@ git push
 
 ### Layer 1: Cluster Infrastructure (Wave 0-1)
 
-**Managed by:** `argocd/bootstrap/infrastructure-root.yaml`
+**Managed by:** `charts/argocd-bootstrap/infrastructure-root.yaml`
 
 **Deploys:** Cluster-wide components (ONE instance per cluster)
 
@@ -96,7 +96,7 @@ git push
 | falco-rules | 1 | ❌ No | Custom security rules |
 | monitoring | 0 | ❌ No | Prometheus + Grafana |
 
-**Configuration:** Edit `argocd/infrastructure/values.yaml` to enable/disable components.
+**Configuration:** Edit `charts/argocd-infrastructure/values.yaml` to enable/disable components.
 
 **GitOps Benefits:**
 - ✅ Drift detection and auto-correction
@@ -106,7 +106,7 @@ git push
 
 ### Layer 2: Per-Client Applications (Wave -1 through 3)
 
-**Managed by:** `argocd/bootstrap/applicationset-auto-discover.yaml`
+**Managed by:** `charts/argocd-bootstrap/applicationset-auto-discover.yaml`
 
 **Deploys:** Per-client/environment resources (ONE set per client/env)
 
@@ -165,7 +165,7 @@ Sync waves control deployment order. ArgoCD waits for each wave to be healthy be
 
 ### Enable/Disable Components
 
-Edit `argocd/infrastructure/values.yaml`:
+Edit `charts/argocd-infrastructure/values.yaml`:
 
 ```yaml
 # Enable cloud storage storage
@@ -185,7 +185,7 @@ Git commit and push - ArgoCD auto-syncs!
 
 ### Update Component Versions
 
-Edit `argocd/infrastructure/values.yaml`:
+Edit `charts/argocd-infrastructure/values.yaml`:
 
 ```yaml
 certManager:
@@ -306,6 +306,6 @@ kubectl logs -n myclient-prod -l app=api
 ## References
 
 - Bootstrap script: `scripts/bootstrap.sh`
-- Infrastructure values: `argocd/infrastructure/values.yaml`
-- Application templates: `argocd/applications/templates/`
+- Infrastructure values: `charts/argocd-infrastructure/values.yaml`
+- Application templates: `charts/argocd-applications/templates/`
 - Deployment configs: `deployments/*/values.yaml`

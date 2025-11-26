@@ -5,17 +5,15 @@
 # It manages cluster-wide infrastructure (cert-manager, gateways, storage, security, backups).
 #
 # Bootstrap workflow:
-# 1. Install ArgoCD (manual helm install)
-# 2. Deploy this infrastructure-root.yaml (kubectl apply)
-# 3. Deploy applicationset-auto-discover.yaml (for per-client apps)
-#
-# After that, all infrastructure is managed via Git!
+# 1. Install ArgoCD (helm install argocd)
+# 2. Deploy this bootstrap chart (helm install argocd-bootstrap)
+# 3. ArgoCD manages everything else via Git!
 
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: infrastructure
-  namespace: argocd
+  namespace: {{ .Values.argocd.namespace | default "argocd" }}
   labels:
     app.kubernetes.io/name: infrastructure
     app.kubernetes.io/component: cluster-infrastructure
@@ -25,9 +23,9 @@ spec:
   project: default
 
   source:
-    repoURL: https://github.com/parmazip/monobase-infra.git
-    targetRevision: HEAD
-    path: argocd/infrastructure
+    repoURL: {{ .Values.argocd.repoURL | required "argocd.repoURL is required" }}
+    targetRevision: {{ .Values.argocd.targetRevision | default "HEAD" }}
+    path: charts/argocd-infrastructure
 
     # Use Helm to render infrastructure components
     helm:
@@ -38,13 +36,13 @@ spec:
       # Inject repoURL from bootstrap (single source of truth)
       values: |
         argocd:
-          repoURL: https://github.com/parmazip/monobase-infra.git
-          targetRevision: HEAD
+          repoURL: {{ .Values.argocd.repoURL }}
+          targetRevision: {{ .Values.argocd.targetRevision | default "HEAD" }}
 
   destination:
-    server: https://kubernetes.default.svc
+    server: {{ .Values.argocd.clusterServer | default "https://kubernetes.default.svc" }}
     # Infrastructure components create their own namespaces
-    namespace: argocd
+    namespace: {{ .Values.argocd.namespace | default "argocd" }}
 
   syncPolicy:
     automated:

@@ -1,11 +1,21 @@
 # Default values for monobase-infrastructure Helm chart
 # These control cluster-wide infrastructure components
-# Note: argocd.repoURL is injected from infrastructure-root.yaml bootstrap file
 
-# ArgoCD - GitOps continuous delivery platform
-# Chart: https://github.com/argoproj/argo-helm
-# Version: 5.x+
+# ArgoCD Bootstrap Configuration
+# Used by charts/argocd-bootstrap/ to create infrastructure-root and applicationset
 argocd:
+  # Git repository for GitOps
+  repoURL: https://github.com/parmazip/monobase-infra.git
+  targetRevision: HEAD
+
+  # Kubernetes cluster configuration
+  namespace: argocd
+  clusterServer: https://kubernetes.default.svc
+
+  # ArgoCD Installation Configuration
+  # Chart: https://github.com/argoproj/argo-helm
+  # Version: 5.x+
+
   # Global settings
   global:
     domain: argocd.example.com  # Set in client config

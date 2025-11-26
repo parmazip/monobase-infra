@@ -96,7 +96,7 @@ Only allows images from approved registries (default: audit mode):
 ## Usage with ArgoCD
 
 ```yaml
-# argocd/infrastructure/templates/kyverno-policies.yaml
+# charts/argocd-infrastructure/templates/kyverno-policies.yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:

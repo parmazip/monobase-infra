@@ -396,8 +396,8 @@ For detailed information on multi-domain support:
 - ✅ Cost-effective (single LoadBalancer)
 
 **Deployment:** 
-- Envoy Gateway operator: `argocd/infrastructure/templates/envoy-gateway.yaml` (sync wave 0)
-- Gateway resource: `argocd/infrastructure/templates/gateway-resources.yaml` (sync wave 1)
+- Envoy Gateway operator: `charts/argocd-infrastructure/templates/envoy-gateway.yaml` (sync wave 0)
+- Gateway resource: `charts/argocd-infrastructure/templates/gateway-resources.yaml` (sync wave 1)
 - Configuration: `infrastructure/gateway/shared-gateway.yaml` (GitOps-managed)
 
 **Reference examples:** See `docs/components/envoy-gateway-*.yaml` and `infrastructure/gateway/` for configuration

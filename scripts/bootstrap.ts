@@ -500,22 +500,17 @@ spec:
       return;
     }
 
-    const spinner = ora('Deploying Infrastructure Root...').start();
-    
-    try {
-      await $`kubectl apply -f argocd/bootstrap/infrastructure-root.yaml`.quiet();
-      spinner.succeed('Infrastructure Root deployed');
-    } catch (error) {
-      spinner.fail('Infrastructure Root deployment failed');
-      throw error;
-    }
+    const spinner = ora('Deploying ArgoCD Bootstrap (Infrastructure Root + ApplicationSet)...').start();
 
-    spinner.start('Deploying ApplicationSet...');
     try {
-      await $`kubectl apply -f argocd/bootstrap/applicationset-auto-discover.yaml`.quiet();
-      spinner.succeed('ApplicationSet deployed');
+      await $`helm upgrade --install argocd-bootstrap ./charts/argocd-bootstrap \
+        --namespace argocd \
+        --values values/infrastructure/main.yaml \
+        --wait \
+        --timeout 5m`.quiet();
+      spinner.succeed('ArgoCD Bootstrap deployed (Infrastructure Root + ApplicationSet)');
     } catch (error) {
-      spinner.fail('ApplicationSet deployment failed');
+      spinner.fail('ArgoCD Bootstrap deployment failed');
       throw error;
     }
 

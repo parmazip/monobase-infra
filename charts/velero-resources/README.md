@@ -130,7 +130,7 @@ Requires Velero credentials secret with DO access keys.
 Deployed automatically via ArgoCD when `velero.enabled=true`:
 
 ```yaml
-# argocd/infrastructure/templates/velero-resources.yaml
+# charts/argocd-infrastructure/templates/velero-resources.yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:

@@ -73,7 +73,7 @@ Monitors PostgreSQL containers for:
 Deployed automatically via ArgoCD when `falco.enabled=true`:
 
 ```yaml
-# argocd/infrastructure/templates/falco-rules.yaml
+# charts/argocd-infrastructure/templates/falco-rules.yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:

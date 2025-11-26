@@ -79,7 +79,7 @@ Prometheus scrape configurations for:
 Deployed automatically via ArgoCD when `monitoring.enabled=true`:
 
 ```yaml
-# argocd/infrastructure/templates/monitoring-resources.yaml
+# charts/argocd-infrastructure/templates/monitoring-resources.yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
