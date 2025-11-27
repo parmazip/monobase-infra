@@ -25,8 +25,8 @@ spec:
           domain: {{ .Values.gateway.domain }}
           namespace: monitoring
           gateway:
-            name: {{ .Values.gateway.gateway.name }}
-            namespace: {{ .Values.gateway.gateway.namespace }}
+            name: {{ if .Values.gateway.gateway }}{{ .Values.gateway.gateway.name }}{{ else }}shared-gateway{{ end }}
+            namespace: {{ if .Values.gateway.gateway }}{{ .Values.gateway.gateway.namespace }}{{ else }}gateway-system{{ end }}
         {{- toYaml .Values.monitoring.grafana | nindent 8 }}
 
   destination:

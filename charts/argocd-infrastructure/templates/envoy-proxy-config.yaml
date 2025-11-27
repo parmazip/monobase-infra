@@ -1,4 +1,4 @@
-{{- if .Values.envoyProxyConfig.enabled }}
+{{- if and .Values.envoyProxyConfig .Values.envoyProxyConfig.enabled }}
 # ArgoCD Application: EnvoyProxy Configuration
 # Configures cloud-specific LoadBalancer settings for Envoy Gateway
 # Sync Wave 0.5 - After Envoy Gateway operator (wave 0), before Gateway resources (wave 1)
