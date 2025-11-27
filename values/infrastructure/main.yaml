@@ -5,12 +5,9 @@
 # Used by charts/argocd-bootstrap/ to create infrastructure-root and applicationset
 argocd:
   # Git repository for GitOps
+  # DEPLOYMENT-SPECIFIC: Override chart default (template points to mycure-infra/monobase-infra)
   repoURL: https://github.com/parmazip/monobase-infra.git
   targetRevision: HEAD
-
-  # Kubernetes cluster configuration
-  namespace: argocd
-  clusterServer: https://kubernetes.default.svc
 
   # ArgoCD Installation Configuration
   # Chart: https://github.com/argoproj/argo-helm
@@ -224,7 +221,6 @@ argocd:
 # Cert Manager - TLS certificate automation
 certManager:
   enabled: true
-  version: v1.16.2
 
 # Cert Manager Resources - ClusterIssuers and certificate configuration
 certManagerIssuers:
@@ -250,33 +246,14 @@ certManagerIssuers:
 # Envoy Gateway - Gateway API implementation
 envoyGateway:
   enabled: true
-  version: v1.2.0
 
 # Gateway Resources - Shared Gateway configuration
 gateway:
-  # Base domain for gateway (override per deployment)
+  # DEPLOYMENT-SPECIFIC: Override chart default (template uses example.com)
   domain: parmazip.com
 
-  # Gateway configuration
-  gateway:
-    name: shared-gateway
-    namespace: gateway-system
-    gatewayClassName: envoy-gateway
-    listeners:
-      https:
-        enabled: true
-        port: 443
-        protocol: HTTPS
-        # hostname automatically derived from gateway.domain as *.parmazip.com
-      http:
-        enabled: true
-        port: 80
-        protocol: HTTP
-        # hostname automatically derived from gateway.domain as *.parmazip.com
-
   # TLS/Certificate configuration - Per-app certificates
-  clusterIssuer: letsencrypt-prod
-
+  # DEPLOYMENT-SPECIFIC: Certificate hostnames for this deployment
   certificates:
     # Staging environment
     - name: staging-api-tls
@@ -310,18 +287,17 @@ gateway:
       enabled: true
 
   # HTTP to HTTPS redirect
+  # DEPLOYMENT-SPECIFIC: Override chart default (disabled due to HTTP-01 ACME challenge)
   httpRedirect:
-    enabled: false  # Disabled: wildcard redirect incompatible with HTTP-01
-    statusCode: 301
+    enabled: false
 
 # External Secrets - Secret management
 externalSecrets:
   enabled: true
-  version: 0.9.11
-  provider: gcp
 
   # ClusterSecretStore configurations
   # See charts/external-secrets-stores/README.md for detailed configuration
+  # DEPLOYMENT-SPECIFIC: GCP project and service account configuration
   stores:
     # GCP Secret Manager store (current setup)
     - name: gcp-secretstore
@@ -413,70 +389,21 @@ externalDNS:
     #       cpu: 50m
     #       memory: 64Mi
 
-  # Global configuration applied to all instances
-  global:
-    # Sources to watch (applied to all instances)
-    sources:
-      - gateway-httproute
-      - gateway-tcproute
-      - gateway-tlsroute
-      - service
-
-    # Policy: sync (create+update+delete) or upsert-only (create+update)
-    policy: sync
-
-    # Registry type for tracking ownership
-    registry: txt
-
-    # TXT record prefix
-    txtPrefix: "external-dns-"
-
-    # Log level: panic, debug, info, warning, error, fatal
-    logLevel: info
-
-    # Log format: text or json
-    logFormat: text
-
-    # Interval between DNS updates
-    interval: 1m
-
-    # Trigger loop on create (in addition to interval)
-    triggerLoopOnEvent: true
-
-  # Pod-level security context (PodSecurity restricted compliant)
-  securityContext:
-    runAsNonRoot: true
-    runAsUser: 65534  # nobody user
-    fsGroup: 65534
-    seccompProfile:
-      type: RuntimeDefault
-
 # Kyverno - Policy engine
 kyverno:
-  enabled: false  # Optional, enable for policy enforcement
-  version: 3.2.0
-  policies:
-    enabled: false  # Only if kyverno.enabled=true
+  enabled: false
 
 # Velero - Backup and disaster recovery
 velero:
-  enabled: false  # Enable for production clusters with backup requirements
-  version: 7.1.4
-  provider: gcp  # Options: aws, azure, gcp, digitalocean, minio
-  # Provider-specific config and schedules defined in charts/velero-resources/values.yaml
-  # Override chosen provider's config in deployment-specific values (e.g., gcp.bucket, gcp.projectId)
+  enabled: false
 
 # Falco - Runtime security monitoring
 falco:
-  enabled: false  # Optional, enable for runtime threat detection
-  version: 4.6.1
-  rules:
-    enabled: false  # Only if falco.enabled=true
+  enabled: false
 
 # Monitoring - Prometheus + Grafana stack
 monitoring:
-  enabled: true  # Optional, enable for observability
-  version: 11.3.9  # Bitnami kube-prometheus chart version
+  enabled: true
   
   # Prometheus configuration
   prometheus:
