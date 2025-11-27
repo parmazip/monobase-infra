@@ -222,10 +222,6 @@ argocd:
 certManager:
   enabled: true
 
-  # Operator configuration
-  operator:
-    version: v1.16.2  # Moved from charts/argocd-infrastructure/values.yaml
-
   # ClusterIssuers configuration
   issuers:
     # HTTP-01 challenge type (no DNS provider needed)
@@ -248,10 +244,6 @@ certManager:
 # Gateway API - Ingress and routing
 gateway:
   enabled: true
-
-  # Operator configuration (Envoy Gateway)
-  operator:
-    version: v1.2.0  # Moved from charts/argocd-infrastructure/values.yaml
 
   # DEPLOYMENT-SPECIFIC: Override chart default (template uses example.com)
   domain: parmazip.com
@@ -340,13 +332,6 @@ externalDNS:
       generate: false
       type: token
       description: "Cloudflare API token for DNS management"
-
-  # External DNS image configuration
-  image:
-    registry: registry.k8s.io
-    repository: external-dns/external-dns
-    tag: "v0.19.0"
-    pullPolicy: IfNotPresent
 
   # Multiple External DNS instances
   # Each instance can manage different DNS provider and domains
