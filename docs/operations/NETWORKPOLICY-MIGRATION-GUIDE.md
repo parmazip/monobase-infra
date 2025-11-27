@@ -391,13 +391,13 @@ Application-specific NetworkPolicies are now defined in individual application c
 **Render templates to verify syntax:**
 ```bash
 # Test API chart
-helm template api charts/api --values values/deployments/parmazip-staging.yaml
+helm template api charts/api --values values/deployments/acme-staging.yaml
 
 # Test PostgreSQL chart
-helm template postgresql charts/postgresql --values values/deployments/parmazip-staging.yaml
+helm template postgresql charts/postgresql --values values/deployments/acme-staging.yaml
 
 # Test security-baseline chart
-helm template security-baseline charts/security-baseline --values values/deployments/parmazip-staging.yaml
+helm template security-baseline charts/security-baseline --values values/deployments/acme-staging.yaml
 ```
 
 **Expected Output:**
@@ -423,16 +423,16 @@ git push
 **Step 2: Verify connectivity**
 ```bash
 # Test Gateway → API
-kubectl exec -n envoy-gateway-system <gateway-pod> -- curl http://api.parmazip-staging:7213/health
+kubectl exec -n envoy-gateway-system <gateway-pod> -- curl http://api.acme-staging:7213/health
 
 # Test API → PostgreSQL
-kubectl exec -n parmazip-staging <api-pod> -- pg_isready -h postgresql -p 5432
+kubectl exec -n acme-staging <api-pod> -- pg_isready -h postgresql -p 5432
 
 # Test API → MinIO
-kubectl exec -n parmazip-staging <api-pod> -- curl http://minio:9000/minio/health/live
+kubectl exec -n acme-staging <api-pod> -- curl http://minio:9000/minio/health/live
 
 # Test Gateway → Frontend
-kubectl exec -n envoy-gateway-system <gateway-pod> -- curl http://account.parmazip-staging:3000
+kubectl exec -n envoy-gateway-system <gateway-pod> -- curl http://account.acme-staging:3000
 ```
 
 **Step 3: Remove centralized policies**
