@@ -1,4 +1,51 @@
-{{- if .Values.envoyGateway.enabled }}
+{{- if .Values.gateway.enabled }}
+---
+# ArgoCD Application: Envoy Gateway (Operator)
+# Sync Wave 0 - Deploy gateway infrastructure (cluster-wide)
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: envoy-gateway
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+
+  source:
+    chart: gateway-helm
+    repoURL: docker.io/envoyproxy
+    targetRevision: {{ .Values.gateway.operator.version | default "v1.2.0" }}
+    helm:
+      releaseName: envoy-gateway
+      skipCrds: false  # Install Gateway API CRDs (required for fresh clusters)
+      valuesObject:
+        certgen:
+          job:
+            annotations:
+              argocd.argoproj.io/hook: PreSync
+              argocd.argoproj.io/hook-delete-policy: HookSucceeded
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: envoy-gateway-system
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        maxDuration: 3m
+---
 # ArgoCD Application: Gateway Resources
 # Deploys the shared Gateway resource after Envoy Gateway operator is ready
 # Sync Wave 1 - Deployed after Envoy Gateway operator (wave 0)
@@ -30,7 +77,7 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: gateway-system
-  
+
   syncPolicy:
     automated:
       prune: true       # Remove resources if removed from Git
@@ -45,7 +92,7 @@ spec:
         duration: 10s
         factor: 2
         maxDuration: 3m
-  
+
   # Ignore expected differences
   ignoreDifferences:
     # Gateway status is managed by controller

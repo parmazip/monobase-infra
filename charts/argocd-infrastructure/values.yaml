@@ -4,23 +4,19 @@
 # Component versions and enabled flags have sensible defaults here.
 # Override in values/infrastructure/main.yaml for deployment-specific configuration.
 
-# Cert Manager - TLS certificate automation
+# Cert Manager - TLS certificate automation (infrastructure-wide)
 certManager:
   enabled: true
-  version: v1.16.2
-
-# Cert Manager Resources - ClusterIssuers and certificate configuration
-certManagerIssuers:
-  enabled: true
+  operator:
+    version: v1.16.2
   # Issuer configuration is deployment-specific (override in main.yaml)
+  issuers: []
 
-# Envoy Gateway - Gateway API implementation
-envoyGateway:
-  enabled: true
-  version: v1.2.0
-
-# Gateway Resources - Shared Gateway configuration
+# Gateway API - Ingress and routing
 gateway:
+  enabled: true
+  operator:
+    version: v1.2.0
   # Gateway configuration has defaults in charts/gateway/values.yaml
   # Override domain and certificates in main.yaml per deployment
 

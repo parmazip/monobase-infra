@@ -218,13 +218,15 @@ argocd:
         cpu: 250m
         memory: 128Mi
 
-# Cert Manager - TLS certificate automation
+# Cert Manager - TLS certificate automation (infrastructure-wide)
 certManager:
   enabled: true
 
-# Cert Manager Resources - ClusterIssuers and certificate configuration
-certManagerIssuers:
-  enabled: true
+  # Operator configuration
+  operator:
+    version: v1.16.2  # Moved from charts/argocd-infrastructure/values.yaml
+
+  # ClusterIssuers configuration
   issuers:
     # HTTP-01 challenge type (no DNS provider needed)
     - name: letsencrypt-prod
@@ -234,7 +236,7 @@ certManagerIssuers:
       http01:
         gatewayName: shared-gateway
         gatewayNamespace: gateway-system
-    
+
     - name: letsencrypt-staging
       email: "admin@parmazip.com"
       server: staging
@@ -243,12 +245,14 @@ certManagerIssuers:
         gatewayName: shared-gateway
         gatewayNamespace: gateway-system
 
-# Envoy Gateway - Gateway API implementation
-envoyGateway:
+# Gateway API - Ingress and routing
+gateway:
   enabled: true
 
-# Gateway Resources - Shared Gateway configuration
-gateway:
+  # Operator configuration (Envoy Gateway)
+  operator:
+    version: v1.2.0  # Moved from charts/argocd-infrastructure/values.yaml
+
   # DEPLOYMENT-SPECIFIC: Override chart default (template uses example.com)
   domain: parmazip.com
 
