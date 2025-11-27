@@ -330,7 +330,7 @@ gateway:
       hostname: storage.stg.parmazip.com
       enabled: true
     - name: staging-mailpit-tls
-      hostname: mailpit.stg.parmazip.com
+      hostname: mail.stg.parmazip.com
       enabled: true
 
     # Production environment
