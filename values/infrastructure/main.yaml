@@ -16,10 +16,6 @@ argocd:
   # Chart: https://github.com/argoproj/argo-helm
   # Version: 5.x+
 
-  # Global settings
-  global:
-    domain: argocd.example.com  # Set in client config
-
   # Simplified configuration (non-HA)
   redis-ha:
     enabled: false  # Use standard Redis instead
@@ -258,31 +254,6 @@ certManagerIssuers:
 envoyGateway:
   enabled: true
   version: v1.2.0
-
-# EnvoyProxy Configuration - Cloud-specific LoadBalancer settings
-envoyProxyConfig:
-  enabled: false  # Override per deployment
-  name: custom-proxy-config
-  namespace: envoy-gateway-system
-  serviceAnnotations: true
-  cloudProvider: none
-
-  azure:
-    publicIpName: ""
-    resourceGroup: ""
-    ipv4Address: ""
-
-  aws:
-    eipAllocations: ""
-
-  gcp:
-    staticIpAddress: ""
-
-  digitalocean:
-    loadBalancerId: ""
-    loadBalancerName: ""
-
-  customAnnotations: {}
 
 # Gateway Resources - Shared Gateway configuration
 gateway:
