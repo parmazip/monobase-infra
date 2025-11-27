@@ -19,5 +19,15 @@ spec:
   {{- if .Values.networkPolicy.egress }}
   egress:
     {{- toYaml .Values.networkPolicy.egress | nindent 4 }}
+    {{- if .Values.networkPolicy.typesense.enabled }}
+    # Typesense search (if enabled)
+    - to:
+      - podSelector:
+          matchLabels:
+            app.kubernetes.io/name: typesense
+      ports:
+        - protocol: TCP
+          port: 8108
+    {{- end }}
   {{- end }}
 {{- end }}

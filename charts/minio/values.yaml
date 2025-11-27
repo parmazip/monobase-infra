@@ -102,3 +102,44 @@ minio:
       burst:
         requests: 200
         unit: Second
+
+  # NetworkPolicy (Bitnami chart feature)
+  networkPolicy:
+    enabled: true
+
+    # Don't allow external connections (only from API and Gateway)
+    allowExternal: false
+
+    # Allow connections from API and Gateway
+    ingressRules:
+      - from:
+        - namespaceSelector: {}  # Same namespace
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: api
+        ports:
+          - protocol: TCP
+            port: 9000
+
+      - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: envoy-gateway-system
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: envoy-gateway
+        ports:
+          - protocol: TCP
+            port: 9000
+
+      # Allow metrics scraping
+      - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: prometheus
+        ports:
+          - protocol: TCP
+            port: 9000

@@ -71,3 +71,32 @@ postgresql:
           - ALL
       seccompProfile:
         type: RuntimeDefault
+
+  # NetworkPolicy (Bitnami chart feature)
+  networkPolicy:
+    enabled: true
+
+    # Don't allow external connections (only from API within namespace)
+    allowExternal: false
+
+    # Allow connections from API pods
+    ingressRules:
+      primaryAccessOnlyFrom:
+        enabled: true
+        namespaceSelector: {}  # Same namespace
+        podSelector:
+          matchLabels:
+            app.kubernetes.io/name: api
+
+      # Allow metrics scraping by Prometheus
+      customRules:
+        - from:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: monitoring
+            podSelector:
+              matchLabels:
+                app.kubernetes.io/name: prometheus
+          ports:
+            - protocol: TCP
+              port: 9187  # PostgreSQL exporter port
