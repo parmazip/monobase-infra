@@ -6,24 +6,12 @@ global:
   namespace: parmazip-production
   environment: production
 
-  nodePool: ""
-
-  gateway:
-    name: shared-gateway
-    namespace: gateway-system
-
-  storage:
-    provider: ""
-    className: ""
-
 # ===== CORE: Monobase API =====
 api:
   enabled: true
 
   image:
-    repository: ghcr.io/monobaselabs/api
     tag: "0.1.4"
-    pullPolicy: IfNotPresent
 
   replicaCount: 1
 
@@ -35,36 +23,11 @@ api:
       cpu: 500m
       memory: 512Mi
 
-  gateway:
-    hostname: ""
-
-  livenessProbe:
-    enabled: true
-
-  readinessProbe:
-    enabled: true
-
-  podDisruptionBudget:
-    enabled: false
-
-  autoscaling:
-    enabled: false
-
-  backup:
-    enabled: false
-
-  externalSecrets:
-    enabled: false
-
   postgresql:
     serviceName: postgresql
-    architecture: standalone
-    auth:
-      database: postgres
-      username: postgres
 
   mailpit:
-    enabled: true
+    enabled: false
 
   # API Configuration
   config:
@@ -88,9 +51,7 @@ account:
   enabled: true
 
   image:
-    repository: ghcr.io/monobaselabs/accountapp
     tag: "1.1.0"
-    pullPolicy: IfNotPresent
 
   replicaCount: 1
 
@@ -102,24 +63,16 @@ account:
       cpu: 200m
       memory: 128Mi
 
-  gateway:
-    hostname: ""
-
   config:
     API_URL: "https://api.parmazip.com"
-    ONESIGNAL_APP_ID: ""  # Configure with your OneSignal App ID
-
-  podDisruptionBudget:
-    enabled: false
+    ONESIGNAL_APP_ID: ""
 
 # ===== CORE: Patient Frontend =====
 patient:
   enabled: true
 
   image:
-    repository: ghcr.io/monobaselabs/patientapp
     tag: "1.1.0"
-    pullPolicy: IfNotPresent
 
   replicaCount: 1
 
@@ -131,24 +84,16 @@ patient:
       cpu: 200m
       memory: 128Mi
 
-  gateway:
-    hostname: ""
-
   config:
     API_URL: "https://api.parmazip.com"
-    ONESIGNAL_APP_ID: ""  # Configure with your OneSignal App ID
-
-  podDisruptionBudget:
-    enabled: false
+    ONESIGNAL_APP_ID: ""
 
 # ===== CORE: Provider Frontend =====
 provider:
   enabled: true
 
   image:
-    repository: ghcr.io/monobaselabs/providerapp
     tag: "1.1.0"
-    pullPolicy: IfNotPresent
 
   replicaCount: 1
 
@@ -160,24 +105,16 @@ provider:
       cpu: 200m
       memory: 128Mi
 
-  gateway:
-    hostname: ""
-
   config:
     API_URL: "https://api.parmazip.com"
-    ONESIGNAL_APP_ID: ""  # Configure with your OneSignal App ID
-
-  podDisruptionBudget:
-    enabled: false
+    ONESIGNAL_APP_ID: ""
 
 # ===== CORE: Website Frontend =====
 website:
   enabled: true
 
   image:
-    repository: ghcr.io/monobaselabs/websiteapp
     tag: "1.1.0"
-    pullPolicy: IfNotPresent
 
   replicaCount: 1
 
@@ -189,16 +126,10 @@ website:
       cpu: 200m
       memory: 128Mi
 
-  gateway:
-    hostname: ""
-
   config:
     API_URL: "https://api.parmazip.com"
     PATIENT_APP_URL: "https://patient.parmazip.com"
     PROVIDER_APP_URL: "https://provider.parmazip.com"
-
-  podDisruptionBudget:
-    enabled: false
 
 # ===== DATABASE: PostgreSQL =====
 postgresql:

@@ -14,7 +14,7 @@ global:
 # Monobase API application configuration
 enabled: true
 
-replicaCount: 2
+replicaCount: 1
 
 image:
   repository: ghcr.io/monobaselabs/api
@@ -62,11 +62,11 @@ gateway:
 
 resources:
   requests:
-    cpu: 500m
-    memory: 1Gi
+    cpu: 100m
+    memory: 256Mi
   limits:
-    cpu: "2"
-    memory: 4Gi
+    cpu: 500m
+    memory: 512Mi
 
 livenessProbe:
   enabled: true
@@ -96,7 +96,7 @@ autoscaling:
   targetMemoryUtilizationPercentage: 80
 
 podDisruptionBudget:
-  enabled: true
+  enabled: false
   minAvailable: 1
 
 # Node pool scheduling (optional, disabled by default)
@@ -232,8 +232,7 @@ serviceMonitor:
 # PostgreSQL dependency configuration
 postgresql:
   enabled: true
-  architecture: replication
-  replicaCount: 2
+  architecture: standalone
   # Service name override - use when PostgreSQL is deployed separately
   # Default: uses Release.Name (e.g., "api-postgresql")
   # Set to "postgresql" when PostgreSQL has its own release
@@ -241,6 +240,8 @@ postgresql:
   auth:
     enabled: true
     existingSecret: ""
+    database: postgres
+    username: postgres
   persistence:
     enabled: true
     storageClass: ""

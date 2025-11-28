@@ -11,7 +11,7 @@ global:
 
 enabled: true
 
-replicaCount: 2
+replicaCount: 1
 
 image:
   repository: ghcr.io/monobaselabs/accountapp
@@ -58,11 +58,11 @@ gateway:
 
 resources:
   requests:
-    cpu: 200m
-    memory: 512Mi
+    cpu: 50m
+    memory: 64Mi
   limits:
-    cpu: 1
-    memory: 1Gi
+    cpu: 200m
+    memory: 128Mi
 
 livenessProbe:
   enabled: true
@@ -87,7 +87,7 @@ autoscaling:
   targetCPUUtilizationPercentage: 70
 
 podDisruptionBudget:
-  enabled: true
+  enabled: false
   minAvailable: 1
 
 # Node pool scheduling (optional, disabled by default)
