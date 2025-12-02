@@ -4,6 +4,11 @@
 terraform {
   required_version = ">= 1.6"
 
+  backend "gcs" {
+    bucket = "parmazip-terraform-state"
+    prefix = "cluster/monobase-main"
+  }
+
   required_providers {
     google = {
       source  = "hashicorp/google"
@@ -18,7 +23,7 @@ provider "google" {
 }
 
 module "gke_cluster" {
-  source = "../terraform/modules/gcp-gke"
+  source = "../../terraform/modules/gcp-gke"
 
   cluster_name       = var.cluster_name
   project_id         = var.project_id
