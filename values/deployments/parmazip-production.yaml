@@ -1,9 +1,9 @@
-# Acme Production Configuration
+# Parmazip Production Configuration
 # Production environment on DigitalOcean Kubernetes (DOKS)
 
 global:
-  domain: acme.com
-  namespace: acme-production
+  domain: parmazip.com
+  namespace: parmazip-production
   environment: production
 
 # ===== CORE: Monobase API =====
@@ -32,14 +32,14 @@ api:
   # API Configuration
   config:
     # CORS
-    CORS_ORIGINS: "https://account.acme.com,https://patient.acme.com,https://provider.acme.com,https://acme.com"
+    CORS_ORIGINS: "https://account.parmazip.com,https://patient.parmazip.com,https://provider.parmazip.com,https://parmazip.com"
     # Auth
-    AUTH_BASE_URL: "https://api.acme.com"
+    AUTH_BASE_URL: "https://api.parmazip.com"
     AUTH_SESSION_EXPIRES_IN: "604800"
     # Email
     EMAIL_PROVIDER: "smtp"
-    EMAIL_FROM_NAME: "Acme"
-    EMAIL_FROM_EMAIL: "noreply@acme.com"
+    EMAIL_FROM_NAME: "Parmazip"
+    EMAIL_FROM_EMAIL: "noreply@parmazip.com"
     # Rate Limiting
     RATE_LIMIT_ENABLED: "true"
     RATE_LIMIT_MAX: "100"
@@ -64,7 +64,7 @@ account:
       memory: 128Mi
 
   config:
-    API_URL: "https://api.acme.com"
+    API_URL: "https://api.parmazip.com"
     ONESIGNAL_APP_ID: ""
 
 # ===== CORE: Patient Frontend =====
@@ -85,7 +85,7 @@ patient:
       memory: 128Mi
 
   config:
-    API_URL: "https://api.acme.com"
+    API_URL: "https://api.parmazip.com"
     ONESIGNAL_APP_ID: ""
 
 # ===== CORE: Provider Frontend =====
@@ -106,7 +106,7 @@ provider:
       memory: 128Mi
 
   config:
-    API_URL: "https://api.acme.com"
+    API_URL: "https://api.parmazip.com"
     ONESIGNAL_APP_ID: ""
 
 # ===== CORE: Website Frontend =====
@@ -127,9 +127,9 @@ website:
       memory: 128Mi
 
   config:
-    API_URL: "https://api.acme.com"
-    PATIENT_APP_URL: "https://patient.acme.com"
-    PROVIDER_APP_URL: "https://provider.acme.com"
+    API_URL: "https://api.parmazip.com"
+    PATIENT_APP_URL: "https://patient.parmazip.com"
+    PROVIDER_APP_URL: "https://provider.parmazip.com"
 
 # ===== DATABASE: PostgreSQL =====
 postgresql:
@@ -138,7 +138,7 @@ postgresql:
   # External Secrets configuration
   externalSecrets:
     enabled: true
-    remoteKey: acme-production-postgresql-password
+    remoteKey: parmazip-production-postgresql-password
     generator:
       generate: true
       type: password
@@ -209,7 +209,7 @@ minio:
   externalSecrets:
     enabled: true
     secrets:
-      - remoteKey: acme-production-minio-root-password
+      - remoteKey: parmazip-production-minio-root-password
         generator:
           generate: true
           type: password

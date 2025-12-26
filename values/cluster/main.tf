@@ -5,7 +5,7 @@ terraform {
   required_version = ">= 1.6"
 
   backend "gcs" {
-    bucket = "acme-terraform-state"
+    bucket = "parmazip-terraform-state"
     prefix = "cluster/monobase-main"
   }
 

@@ -1,9 +1,9 @@
-# Acme Staging Configuration
+# Parmazip Staging Configuration
 # Staging environment on DigitalOcean Kubernetes (DOKS)
 
 global:
-  domain: stg.acme.com
-  namespace: acme-staging
+  domain: stg.parmazip.com
+  namespace: parmazip-staging
   environment: staging
 
 # ===== CORE: Monobase API =====
@@ -31,14 +31,14 @@ api:
 
   config:
     # CORS
-    CORS_ORIGINS: "https://account.stg.acme.com,https://patient.stg.acme.com,https://provider.stg.acme.com,https://stg.acme.com"
+    CORS_ORIGINS: "https://account.stg.parmazip.com,https://patient.stg.parmazip.com,https://provider.stg.parmazip.com,https://stg.parmazip.com"
     # Auth
-    AUTH_BASE_URL: "https://api.stg.acme.com"
+    AUTH_BASE_URL: "https://api.stg.parmazip.com"
     AUTH_SESSION_EXPIRES_IN: "604800"
     # Email
     EMAIL_PROVIDER: "smtp"
-    EMAIL_FROM_NAME: "Acme"
-    EMAIL_FROM_EMAIL: "noreply@acme.com"
+    EMAIL_FROM_NAME: "Parmazip"
+    EMAIL_FROM_EMAIL: "noreply@parmazip.com"
     # Rate Limiting
     RATE_LIMIT_ENABLED: "true"
     RATE_LIMIT_MAX: "100"
@@ -63,7 +63,7 @@ account:
       memory: 128Mi
 
   config:
-    API_URL: "https://api.stg.acme.com"
+    API_URL: "https://api.stg.parmazip.com"
     ONESIGNAL_APP_ID: ""
 
 # ===== CORE: Patient Frontend =====
@@ -84,7 +84,7 @@ patient:
       memory: 128Mi
 
   config:
-    API_URL: "https://api.stg.acme.com"
+    API_URL: "https://api.stg.parmazip.com"
     ONESIGNAL_APP_ID: ""
 
 # ===== CORE: Provider Frontend =====
@@ -105,7 +105,7 @@ provider:
       memory: 128Mi
 
   config:
-    API_URL: "https://api.stg.acme.com"
+    API_URL: "https://api.stg.parmazip.com"
     ONESIGNAL_APP_ID: ""
 
 # ===== CORE: Website Frontend =====
@@ -126,9 +126,9 @@ website:
       memory: 128Mi
 
   config:
-    API_URL: "https://api.stg.acme.com"
-    PATIENT_APP_URL: "https://patient.stg.acme.com"
-    PROVIDER_APP_URL: "https://provider.stg.acme.com"
+    API_URL: "https://api.stg.parmazip.com"
+    PATIENT_APP_URL: "https://patient.stg.parmazip.com"
+    PROVIDER_APP_URL: "https://provider.stg.parmazip.com"
 
 # ===== DATABASE: PostgreSQL =====
 postgresql:
@@ -137,7 +137,7 @@ postgresql:
   # External Secrets configuration
   externalSecrets:
     enabled: true
-    remoteKey: acme-staging-postgresql-password
+    remoteKey: parmazip-staging-postgresql-password
     generator:
       generate: true
       type: password
@@ -208,7 +208,7 @@ minio:
   externalSecrets:
     enabled: true
     secrets:
-      - remoteKey: acme-staging-minio-root-password
+      - remoteKey: parmazip-staging-minio-root-password
         generator:
           generate: true
           type: password
